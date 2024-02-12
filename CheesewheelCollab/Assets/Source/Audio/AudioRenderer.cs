@@ -17,7 +17,7 @@ namespace Source.Audio
             if (!texture || texture.width != recorder.Buffer.Length)
             {
                 Destroy(texture);
-                
+
                 texture = new Texture2D(recorder.Buffer.Length, 100, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
                 texture.filterMode = FilterMode.Point;
 
