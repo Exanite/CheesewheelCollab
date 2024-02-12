@@ -8,12 +8,13 @@ namespace Source.Audio
         private AudioClip recording;
         private int lastPosition = 0;
 
+        public readonly int SampleRate = 10000;
         public readonly float[] Buffer = new float[250];
 
         private void OnEnable()
         {
             // Use default microphone, with a looping 10 second buffer at 10000 Hz
-            recording = Microphone.Start(null, true, 10, 10000);
+            recording = Microphone.Start(null, true, 10, SampleRate);
         }
 
         private void Update()
