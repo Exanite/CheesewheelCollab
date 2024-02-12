@@ -11,20 +11,25 @@ namespace Source.Audio
         /// <summary>
         /// Buffer used with <see cref="recording"/>.GetData()
         /// </summary>
-        private float[] readBuffer = new float[1024];
+        private float[] readBuffer = new float[250];
 
         /// <summary>
         /// Buffer with data ready to be send over the network.
         /// </summary>
-        private float[] sendBuffer = new float[1024];
+        private float[] sendBuffer = new float[250];
 
         private void OnEnable()
         {
-            // Use default microphone, with a looping 10 second buffer at 44100 Hz
-            recording = Microphone.Start(null, true, 10, 44100);
+            // Use default microphone, with a looping 10 second buffer at 10000 Hz
+            recording = Microphone.Start(null, true, 10, 10000);
         }
 
         private void Update()
+        {
+            ReadSamples();
+        }
+
+        private void ReadSamples()
         {
             var position = Microphone.GetPosition(null);
             if (position > lastPosition)
@@ -45,12 +50,9 @@ namespace Source.Audio
             else
             {
                 // Has looped
-                var samplesFromEnd = recording.samples - lastPosition;
-                var samplesFromStart = position;
-
                 // Read full buffers from end
+                var samplesFromEnd = recording.samples - lastPosition;
                 var endIterations = samplesFromEnd / readBuffer.Length;
-                var remainingSamplesFromEnd = samplesFromEnd - endIterations * readBuffer.Length;
                 for (var i = 0; i < endIterations; i++)
                 {
                     recording.GetData(readBuffer, recording.samples - samplesFromEnd + i * readBuffer.Length);
@@ -59,9 +61,10 @@ namespace Source.Audio
                     SendSamples();
                 }
 
-                // Read partial buffers (combine start and end reads)
+                lastPosition = 0;
 
                 // Read full buffers from start
+                ReadSamples();
             }
         }
 
