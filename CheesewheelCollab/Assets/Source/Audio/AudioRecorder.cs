@@ -8,7 +8,7 @@ namespace Source.Audio
         private AudioClip recording;
         private int lastPosition = 0;
 
-        private float[] buffer = new float[250];
+        public readonly float[] Buffer = new float[250];
 
         private void OnEnable()
         {
@@ -28,26 +28,26 @@ namespace Source.Audio
             {
                 // Hasn't looped yet
                 var length = position - lastPosition;
-                var iterations = length / buffer.Length;
+                var iterations = length / Buffer.Length;
                 for (var i = 0; i < iterations; i++)
                 {
-                    recording.GetData(buffer, lastPosition + i * buffer.Length);
+                    recording.GetData(Buffer, lastPosition + i * Buffer.Length);
 
-                    buffer.CopyTo(buffer.AsSpan());
+                    Buffer.CopyTo(Buffer.AsSpan());
                     SendSamples();
                 }
 
-                lastPosition += iterations * buffer.Length;
+                lastPosition += iterations * Buffer.Length;
             }
             else
             {
                 // Has looped
                 // Read full buffers from end
                 var samplesFromEnd = recording.samples - lastPosition;
-                var endIterations = samplesFromEnd / buffer.Length;
+                var endIterations = samplesFromEnd / Buffer.Length;
                 for (var i = 0; i < endIterations; i++)
                 {
-                    recording.GetData(buffer, recording.samples - samplesFromEnd + i * buffer.Length);
+                    recording.GetData(Buffer, recording.samples - samplesFromEnd + i * Buffer.Length);
                     SendSamples();
                 }
 
@@ -60,7 +60,7 @@ namespace Source.Audio
 
         private void SendSamples()
         {
-            Debug.Log($"Sending {buffer.Length} samples");
+            Debug.Log($"Sending {Buffer.Length} samples");
         }
     }
 }
