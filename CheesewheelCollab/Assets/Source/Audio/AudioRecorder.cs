@@ -61,7 +61,7 @@ namespace Source.Audio
 
         private void SendSamples()
         {
-            Debug.Log($"Sending {Buffer.Length} samples");
+            // Do nothing
         }
     }
 }
