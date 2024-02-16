@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Numerics;
 using MathNet.Numerics.IntegralTransforms;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.UI;
@@ -47,7 +48,7 @@ namespace Source.Audio
 
             for (var pixelX = 0; pixelX < texture.width; pixelX++)
             {
-                var pixelY = (int)(texture.height * (frequencies[pixelX] / maxAmplitude));
+                var pixelY = Mathf.Clamp((int)(texture.height * (frequencies[pixelX] / maxAmplitude)), 0, texture.height - 1);
 
                 var index = pixelY * texture.width + pixelX;
                 pixels[index] = Color.white;
