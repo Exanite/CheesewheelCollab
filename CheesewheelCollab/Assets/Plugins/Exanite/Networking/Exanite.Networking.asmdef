@@ -1,0 +1,27 @@
+{
+    "name": "Exanite.Networking",
+    "references": [
+        "Exanite.Core",
+        "LiteNetLib",
+        "UniDi.UniDi",
+        "UniTask",
+        "Unity.Burst",
+        "Unity.Collections",
+        "Unity.Networking.Transport",
+        "Unity.Services.Authentication",
+        "Unity.Services.Relay"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Sirenix.OdinInspector.Attributes.dll",
+        "Sirenix.Serialization.dll",
+        "UniDi-Usage.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
