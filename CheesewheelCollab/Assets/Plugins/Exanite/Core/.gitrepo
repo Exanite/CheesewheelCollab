@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/Exanite/Exanite.Core.git
 	branch = main
-	commit = 36e4a93e7042ad99fba170f3420b848347f078fe
-	parent = e45db859611cdf68ac730e81ea1d697bc01ee5d2
+	commit = ecad26210407bb7f5532e7cd999970c88c68394f
+	parent = 476eb7331436ebbb5d6f3030762960d110181916
 	method = merge
 	cmdver = 0.4.3
