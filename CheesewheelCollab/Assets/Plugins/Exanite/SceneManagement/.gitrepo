@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/Exanite/Exanite.SceneManagement.git
+	branch = main
+	commit = 6e97118d3397204a032c994a6b0e4e28d14c19cf
+	parent = 08554add94a82e6c5606d9161540750bc65c3676
+	method = merge
+	cmdver = 0.4.3

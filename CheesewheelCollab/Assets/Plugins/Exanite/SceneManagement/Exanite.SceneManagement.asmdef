@@ -1,0 +1,20 @@
+{
+    "name": "Exanite.SceneManagement",
+    "references": [
+        "Exanite.Core",
+        "UniTask",
+        "UniDi.UniDi"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Sirenix.OdinInspector.Attributes.dll",
+        "UniDi-Usage.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
