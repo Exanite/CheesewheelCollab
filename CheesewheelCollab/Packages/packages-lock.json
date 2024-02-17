@@ -7,6 +7,13 @@
       "dependencies": {},
       "hash": "75f68222d0a4bd2b468dbf3e6a17a191d28041ab"
     },
+    "com.unidi.unidi": {
+      "version": "https://github.com/Exanite/UniDi.git?path=Source",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "662c9920c20e3566487a12ea85dda9e92aa903c0"
+    },
     "com.unity.2d.animation": {
       "version": "9.1.0",
       "depth": 1,
