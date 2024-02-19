@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using Exanite.Networking;
 using Exanite.Networking.Transports.LiteNetLib;
 using UnityEngine;
@@ -11,7 +12,18 @@ namespace Source.Networking
 
         private void Start()
         {
+            server.ConnectionStarted += (network, connection) =>
+            {
+                Debug.Log("Server connected");
+            };
+
+            server.ConnectionStopped += (network, connection) =>
+            {
+                Debug.Log("Server disconnected");
+            };
+
             server.SetTransports(new[] { transport });
+            server.StartConnection().Forget();
         }
     }
 }
