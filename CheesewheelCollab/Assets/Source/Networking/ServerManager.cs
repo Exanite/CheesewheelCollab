@@ -9,7 +9,7 @@ namespace Source.Networking
         public NetworkServer server;
         public LnlTransportServer transport;
 
-        private void Awake()
+        private void Start()
         {
             server.SetTransports(new[] { transport });
         }

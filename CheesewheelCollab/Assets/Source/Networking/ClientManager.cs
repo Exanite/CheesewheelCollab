@@ -9,7 +9,7 @@ namespace Source.Networking
         public NetworkClient client;
         public LnlTransportClient transport;
 
-        private void Awake()
+        private void Start()
         {
             client.SetTransport(transport);
         }
