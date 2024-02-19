@@ -156,7 +156,6 @@ MonoBehaviour:
   sceneContext: {fileID: 158793638}
   stages:
   - {fileID: 1104459808}
-  - {fileID: 1104459808}
 --- !u!4 &75774014
 Transform:
   m_ObjectHideFlags: 0

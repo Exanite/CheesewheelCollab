@@ -8,7 +8,7 @@ namespace Source.Networking
     {
         public override void InstallBindings()
         {
-            Container.Bind(typeof(IChanneledNetwork), typeof(INetwork))
+            Container.Bind(typeof(IChanneledNetwork), typeof(INetwork), typeof(IPacketHandler))
                 .FromMethod(ctx =>
                 {
                     return new ChanneledNetwork(PacketHandlerIds.ChanneledNetwork, ctx.Container.Resolve<Network>());
