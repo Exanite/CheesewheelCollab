@@ -1,8 +1,6 @@
-using System;
 using System.Linq;
 using System.Numerics;
 using MathNet.Numerics.IntegralTransforms;
-using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.UI;
