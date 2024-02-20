@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Exanite.Networking;
@@ -12,21 +11,30 @@ namespace Source.Networking
 {
     public class AudioPacket : INetworkSerializable
     {
-        public float[] Data = new float[250];
+        public const int SamplesLength = 250;
+
+        /// <summary>
+        /// Time the packet was recorded on the client.
+        /// </summary>
+        public float Time;
+
+        public readonly float[] Samples = new float[SamplesLength];
 
         public void Serialize(NetDataWriter writer)
         {
-            for (var i = 0; i < Data.Length; i++)
+            writer.Put(Time);
+            for (var i = 0; i < Samples.Length; i++)
             {
-                writer.Put(Data[i]);
+                writer.Put(Samples[i]);
             }
         }
 
         public void Deserialize(NetDataReader reader)
         {
-            for (var i = 0; i < Data.Length; i++)
+            Time = reader.GetFloat();
+            for (var i = 0; i < Samples.Length; i++)
             {
-                Data[i] = reader.GetFloat();
+                Samples[i] = reader.GetFloat();
             }
         }
     }
@@ -65,9 +73,9 @@ namespace Source.Networking
         {
             if (network.IsClient)
             {
-                for (var i = 0; i < audioPacketChannel.Message.Data.Length; i++)
+                for (var i = 0; i < audioPacketChannel.Message.Samples.Length; i++)
                 {
-                    audioPacketChannel.Message.Data[i] = Time.time;
+                    audioPacketChannel.Message.Time = Time.time;
                 }
 
                 audioPacketChannel.Write();
@@ -80,7 +88,7 @@ namespace Source.Networking
 
         private void OnAudioPacket(NetworkConnection connection, AudioPacket message)
         {
-            Debug.Log($"Received on {connection.Network.GetType().Name}: {message.Data[0]}");
+            Debug.Log($"Received on {connection.Network.GetType().Name}: {message.Time}");
         }
     }
 }
