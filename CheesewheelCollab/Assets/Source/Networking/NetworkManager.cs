@@ -18,6 +18,8 @@ namespace Source.Networking
         /// </summary>
         public float Time;
 
+        // We'll probably send 500 samples with 2 bytes each (16 bit precision)
+        // Max UDP MTU is 1460-ish, but we'll send ~1000 to be safe
         public readonly float[] Samples = new float[SamplesLength];
 
         public void Serialize(NetDataWriter writer)
