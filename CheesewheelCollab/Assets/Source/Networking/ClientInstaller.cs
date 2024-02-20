@@ -14,6 +14,7 @@ namespace Source.Networking
         public override void InstallBindings()
         {
             Container.Bind(typeof(NetworkClient), typeof(Network))
+                .To<NetworkClient>()
                 .FromInstance(coreNetwork)
                 .AsSingle()
                 .OnInstantiated<NetworkClient>((_, _) =>
