@@ -14,7 +14,7 @@ namespace Source.Networking
         public const int SamplesLength = 250;
 
         /// <summary>
-        /// Time the packet was recorded on the client.
+        /// Time the packet was recorded on the client. Probably should use ticks or packet counter instead.
         /// </summary>
         public float Time;
 
