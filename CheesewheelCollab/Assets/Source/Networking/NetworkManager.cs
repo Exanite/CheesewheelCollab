@@ -83,7 +83,7 @@ namespace Source.Networking
                 audioPacketChannel.Write();
                 foreach (var connection in network.Connections)
                 {
-                    audioPacketChannel.Send(connection);
+                    audioPacketChannel.SendNoWrite(connection);
                 }
             }
         }
