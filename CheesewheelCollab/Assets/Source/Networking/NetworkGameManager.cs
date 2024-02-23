@@ -38,18 +38,7 @@ namespace Source.Networking
             playerUpdatePacketChannel = network.CreateChannel<PlayerUpdatePacket>(nameof(PlayerUpdatePacket), SendType.Reliable, OnPlayerUpdatePacket);
             audioPacketChannel = network.CreateChannel<AudioPacket>(nameof(AudioPacket), SendType.Unreliable, OnAudioPacket);
 
-            network.ConnectionStarted += (_, _) =>
-            {
-                Debug.Log($"{(network.IsServer ? "Server" : "Client")} connected");
-            };
-
-            network.ConnectionStopped += (_, _) =>
-            {
-                Debug.Log($"{(network.IsServer ? "Server" : "Client")} disconnected");
-            };
-
             network.ConnectionStarted += OnConnectionStarted;
-
             network.ConnectionStopped += OnConnectionStopped;
 
             coreNetwork.StartConnection().Forget();
