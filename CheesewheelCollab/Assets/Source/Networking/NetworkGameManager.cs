@@ -83,10 +83,10 @@ namespace Source.Networking
                 players.Add(player.Id, player);
 
                 playerJoinPacketChannel.Message.PlayerId = player.Id;
-                playerJoinPacketChannel.Write();
                 foreach (var networkConnection in network.Connections)
                 {
-                    playerJoinPacketChannel.SendNoWrite(networkConnection);
+                    playerJoinPacketChannel.Message.IsLocal = networkConnection.Id == player.Id;
+                    playerJoinPacketChannel.Send(networkConnection);
                 }
             }
         }
@@ -109,11 +109,22 @@ namespace Source.Networking
         private void OnPlayerJoinPacket(NetworkConnection connection, PlayerJoinPacket message)
         {
             Debug.Log($"Player joined: {message.PlayerId}");
+
+            var playerPrefabToInstantiate = message.IsLocal ? localPlayerPrefab : playerPrefab;
+            var player = new Player
+            {
+                Id = connection.Id,
+                GameObject = Instantiate(playerPrefabToInstantiate),
+            };
+            players.Add(player.Id, player);
         }
 
         private void OnPlayerLeavePacket(NetworkConnection connection, PlayerLeavePacket message)
         {
             Debug.Log($"Player left: {message.PlayerId}");
+
+            players.Remove(connection.Id, out var removedPlayer);
+            Destroy(removedPlayer.GameObject);
         }
 
         private void OnPlayerUpdatePacket(NetworkConnection connection, PlayerUpdatePacket message)
@@ -172,15 +183,18 @@ namespace Source.Networking
     public class PlayerJoinPacket : INetworkSerializable
     {
         public int PlayerId;
+        public bool IsLocal;
 
         public void Serialize(NetDataWriter writer)
         {
             writer.Put(PlayerId);
+            writer.Put(IsLocal);
         }
 
         public void Deserialize(NetDataReader reader)
         {
             PlayerId = reader.GetInt();
+            IsLocal = reader.GetBool();
         }
     }
 
