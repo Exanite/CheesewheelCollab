@@ -90,7 +90,7 @@ namespace Source.Networking
 
         private void OnAudioPacket(NetworkConnection connection, AudioPacket message)
         {
-            Debug.Log($"Received on {connection.Network.GetType().Name}: {message.Time}");
+            Debug.Log($"Received on {connection.Network.GetType().Name}: {message.Time} | Time diff: {Time.time - message.Time}");
         }
     }
 }
