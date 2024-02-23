@@ -142,7 +142,7 @@ namespace Source.Networking
 
         private void OnPlayerUpdatePacket(NetworkConnection connection, PlayerUpdatePacket message)
         {
-            Debug.Log($"Player updated: {message.PlayerId} ({message.Position}) ({network.GetType().Name})");
+            Debug.Log($"Player updated: {message.PlayerId} ({message.Position}) (IsServer: {network.IsServer})");
 
             if (network.IsServer)
             {
