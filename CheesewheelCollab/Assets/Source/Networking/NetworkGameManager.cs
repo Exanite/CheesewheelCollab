@@ -11,10 +11,19 @@ namespace Source.Networking
 {
     public class NetworkGameManager : MonoBehaviour
     {
+        [Header("Dependencies")]
+        [SerializeField] private GameObject playerPrefab;
+        [SerializeField] private GameObject localPlayerPrefab;
+
         [Inject] private IEnumerable<IPacketHandler> packetHandlers;
         [Inject] private Network coreNetwork;
         [Inject] private IChanneledNetwork network;
 
+        private Dictionary<int, Player> players = new();
+
+        private INetworkChannel<PlayerJoinPacket> playerJoinPacketChannel;
+        private INetworkChannel<PlayerLeavePacket> playerLeavePacketChannel;
+        private INetworkChannel<PlayerUpdatePacket> playerUpdatePacketChannel;
         private INetworkChannel<AudioPacket> audioPacketChannel;
 
         private void Start()
@@ -23,6 +32,11 @@ namespace Source.Networking
             {
                 coreNetwork.RegisterPacketHandler(packetHandler);
             }
+
+            playerJoinPacketChannel = network.CreateChannel<PlayerJoinPacket>(nameof(PlayerJoinPacket), SendType.Reliable, OnPlayerJoinPacket);
+            playerLeavePacketChannel = network.CreateChannel<PlayerLeavePacket>(nameof(PlayerLeavePacket), SendType.Reliable, OnPlayerLeavePacket);
+            playerUpdatePacketChannel = network.CreateChannel<PlayerUpdatePacket>(nameof(PlayerUpdatePacket), SendType.Reliable, OnPlayerUpdatePacket);
+            audioPacketChannel = network.CreateChannel<AudioPacket>(nameof(AudioPacket), SendType.Unreliable, OnAudioPacket);
 
             network.ConnectionStarted += (_, _) =>
             {
@@ -34,12 +48,14 @@ namespace Source.Networking
                 Debug.Log($"{(network.IsServer ? "Server" : "Client")} disconnected");
             };
 
-            audioPacketChannel = network.CreateChannel<AudioPacket>("AudioPacket", SendType.Unreliable, OnAudioPacket);
+            network.ConnectionStarted += OnConnectionStarted;
+
+            network.ConnectionStopped += OnConnectionStopped;
 
             coreNetwork.StartConnection().Forget();
         }
 
-        private void Update()
+        private void FixedUpdate()
         {
             if (network.IsClient)
             {
@@ -54,6 +70,55 @@ namespace Source.Networking
                     audioPacketChannel.SendNoWrite(connection);
                 }
             }
+        }
+
+        private void OnConnectionStarted(INetwork _, NetworkConnection connection)
+        {
+            if (network.IsServer)
+            {
+                var player = new Player
+                {
+                    Id = connection.Id,
+                };
+                players.Add(player.Id, player);
+
+                playerJoinPacketChannel.Message.PlayerId = player.Id;
+                playerJoinPacketChannel.Write();
+                foreach (var networkConnection in network.Connections)
+                {
+                    playerJoinPacketChannel.SendNoWrite(networkConnection);
+                }
+            }
+        }
+
+        private void OnConnectionStopped(INetwork network1, NetworkConnection connection)
+        {
+            if (network.IsServer)
+            {
+                players.Remove(connection.Id);
+
+                playerLeavePacketChannel.Message.PlayerId = connection.Id;
+                playerLeavePacketChannel.Write();
+                foreach (var networkConnection in network.Connections)
+                {
+                    playerLeavePacketChannel.SendNoWrite(networkConnection);
+                }
+            }
+        }
+
+        private void OnPlayerJoinPacket(NetworkConnection connection, PlayerJoinPacket message)
+        {
+            Debug.Log($"Player joined: {message.PlayerId}");
+        }
+
+        private void OnPlayerLeavePacket(NetworkConnection connection, PlayerLeavePacket message)
+        {
+            Debug.Log($"Player left: {message.PlayerId}");
+        }
+
+        private void OnPlayerUpdatePacket(NetworkConnection connection, PlayerUpdatePacket message)
+        {
+            Debug.Log($"Player updated: {message.PlayerId} ({message.Position})");
         }
 
         private void OnAudioPacket(NetworkConnection connection, AudioPacket message)
@@ -92,6 +157,16 @@ namespace Source.Networking
                 Samples[i] = reader.GetFloat();
             }
         }
+    }
+
+    public class Player
+    {
+        public int Id;
+
+        /// <summary>
+        /// Null on server.
+        /// </summary>
+        public GameObject GameObject;
     }
 
     public class PlayerJoinPacket : INetworkSerializable
