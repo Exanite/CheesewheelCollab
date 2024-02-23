@@ -9,7 +9,7 @@ using Network = Exanite.Networking.Network;
 
 namespace Source.Networking
 {
-    public class NetworkManager : MonoBehaviour
+    public class NetworkGameManager : MonoBehaviour
     {
         [Inject] private IEnumerable<IPacketHandler> packetHandlers;
         [Inject] private Network coreNetwork;
