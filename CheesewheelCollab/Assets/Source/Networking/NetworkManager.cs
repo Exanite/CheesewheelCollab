@@ -9,38 +9,6 @@ using Network = Exanite.Networking.Network;
 
 namespace Source.Networking
 {
-    public class AudioPacket : INetworkSerializable
-    {
-        public const int SamplesLength = 250;
-
-        /// <summary>
-        /// Time the packet was recorded on the client. Probably should use ticks or packet counter instead.
-        /// </summary>
-        public float Time;
-
-        // We'll probably send 500 samples with 2 bytes each (16 bit precision)
-        // Max UDP MTU is 1460-ish, but we'll send ~1000 to be safe
-        public readonly float[] Samples = new float[SamplesLength];
-
-        public void Serialize(NetDataWriter writer)
-        {
-            writer.Put(Time);
-            for (var i = 0; i < Samples.Length; i++)
-            {
-                writer.Put(Samples[i]);
-            }
-        }
-
-        public void Deserialize(NetDataReader reader)
-        {
-            Time = reader.GetFloat();
-            for (var i = 0; i < Samples.Length; i++)
-            {
-                Samples[i] = reader.GetFloat();
-            }
-        }
-    }
-
     public class NetworkManager : MonoBehaviour
     {
         [Inject] private IEnumerable<IPacketHandler> packetHandlers;
@@ -91,6 +59,86 @@ namespace Source.Networking
         private void OnAudioPacket(NetworkConnection connection, AudioPacket message)
         {
             Debug.Log($"Received on {connection.Network.GetType().Name}: {message.Time}");
+        }
+    }
+
+    public class AudioPacket : INetworkSerializable
+    {
+        public const int SamplesLength = 250;
+
+        /// <summary>
+        /// Time the packet was recorded on the client. Probably should use ticks or packet counter instead.
+        /// </summary>
+        public float Time;
+
+        // We'll probably send 500 samples with 2 bytes each (16 bit precision)
+        // Max UDP MTU is 1460-ish, but we'll send ~1000 to be safe
+        public readonly float[] Samples = new float[SamplesLength];
+
+        public void Serialize(NetDataWriter writer)
+        {
+            writer.Put(Time);
+            for (var i = 0; i < Samples.Length; i++)
+            {
+                writer.Put(Samples[i]);
+            }
+        }
+
+        public void Deserialize(NetDataReader reader)
+        {
+            Time = reader.GetFloat();
+            for (var i = 0; i < Samples.Length; i++)
+            {
+                Samples[i] = reader.GetFloat();
+            }
+        }
+    }
+
+    public class PlayerJoinPacket : INetworkSerializable
+    {
+        public int PlayerId;
+
+        public void Serialize(NetDataWriter writer)
+        {
+            writer.Put(PlayerId);
+        }
+
+        public void Deserialize(NetDataReader reader)
+        {
+            PlayerId = reader.GetInt();
+        }
+    }
+
+    public class PlayerLeavePacket : INetworkSerializable
+    {
+        public int PlayerId;
+
+        public void Serialize(NetDataWriter writer)
+        {
+            writer.Put(PlayerId);
+        }
+
+        public void Deserialize(NetDataReader reader)
+        {
+            PlayerId = reader.GetInt();
+        }
+    }
+
+    public class PlayerUpdatePacket : INetworkSerializable
+    {
+        public int PlayerId;
+        public Vector2 Position;
+
+        public void Serialize(NetDataWriter writer)
+        {
+            writer.Put(PlayerId);
+            writer.Put(Position);
+        }
+
+        public void Deserialize(NetDataReader reader)
+        {
+            PlayerId = reader.GetInt();
+            Position = reader.GetVector2();
         }
     }
 }
