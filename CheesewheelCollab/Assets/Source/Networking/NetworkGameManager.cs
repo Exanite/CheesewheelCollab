@@ -3,6 +3,7 @@ using Cysharp.Threading.Tasks;
 using Exanite.Networking;
 using Exanite.Networking.Channels;
 using LiteNetLib.Utils;
+using Source.Audio;
 using UniDi;
 using UnityEngine;
 using Network = Exanite.Networking.Network;
@@ -186,8 +187,6 @@ namespace Source.Networking
 
     public class AudioPacket : INetworkSerializable
     {
-        public const int SamplesLength = 250;
-
         /// <summary>
         /// Time the packet was recorded on the client. Probably should use ticks or packet counter instead.
         /// </summary>
@@ -195,7 +194,7 @@ namespace Source.Networking
 
         // We'll probably send 500 samples with 2 bytes each (16 bit precision)
         // Max UDP MTU is 1460-ish, but we'll send ~1000 to be safe
-        public readonly float[] Samples = new float[SamplesLength];
+        public readonly float[] Samples = new float[AudioConstants.AudioPacketSamplesSize];
 
         public void Serialize(NetDataWriter writer)
         {

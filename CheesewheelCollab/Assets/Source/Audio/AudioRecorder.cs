@@ -7,9 +7,12 @@ namespace Source.Audio
     {
         private AudioClip recording;
         private int lastPosition = 0;
+        private int lastSequence = 0;
 
-        public readonly int SampleRate = 10000;
-        public readonly float[] Buffer = new float[250];
+        public readonly int SampleRate = AudioConstants.SampleRate;
+        public readonly float[] Buffer = new float[AudioConstants.AudioPacketSamplesSize];
+
+        public event Action<int, float[]> SamplesRecorded;
 
         private void OnEnable()
         {
@@ -60,7 +63,7 @@ namespace Source.Audio
 
         private void SendSamples()
         {
-            // Do nothing
+            SamplesRecorded?.Invoke(lastSequence++, Buffer);
         }
     }
 }
