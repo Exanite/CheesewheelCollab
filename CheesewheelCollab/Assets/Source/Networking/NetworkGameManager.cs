@@ -145,7 +145,7 @@ namespace Source.Networking
         {
             Debug.Log($"Player left: {message.PlayerId}");
 
-            players.Remove(connection.Id, out var removedPlayer);
+            players.Remove(message.PlayerId, out var removedPlayer);
             Destroy(removedPlayer.GameObject);
         }
 
