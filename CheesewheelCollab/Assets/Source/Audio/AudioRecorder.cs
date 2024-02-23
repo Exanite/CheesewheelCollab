@@ -34,7 +34,6 @@ namespace Source.Audio
                 {
                     recording.GetData(Buffer, lastPosition + i * Buffer.Length);
 
-                    Buffer.CopyTo(Buffer.AsSpan());
                     SendSamples();
                 }
 
