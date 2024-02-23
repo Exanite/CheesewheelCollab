@@ -79,12 +79,21 @@ namespace Source.Networking
         {
             if (network.IsServer)
             {
+                // Sync existing players to new player
+                foreach (var (_, existingPlayer) in players)
+                {
+                    playerJoinPacketChannel.Message.PlayerId = existingPlayer.Id;
+                    playerJoinPacketChannel.Message.IsLocal = false;
+                    playerJoinPacketChannel.Send(connection);
+                }
+
                 var player = new Player
                 {
                     Id = connection.Id,
                 };
                 players.Add(player.Id, player);
 
+                // Notify all players of new player
                 playerJoinPacketChannel.Message.PlayerId = player.Id;
                 foreach (var networkConnection in network.Connections)
                 {
