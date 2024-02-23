@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 namespace Source.Audio
@@ -11,7 +10,7 @@ namespace Source.Audio
         private int lastPosition = 0;
         private int lastSequence = 0;
 
-        public readonly int SampleRate = AudioConstants.SampleRate;
+        public readonly int SampleRate = AudioConstants.RecordingSampleRate;
         public readonly float[] Buffer = new float[AudioConstants.AudioPacketSamplesSize];
 
         public event SamplesRecordedCallback SamplesRecorded;
