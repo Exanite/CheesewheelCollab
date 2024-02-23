@@ -5,6 +5,8 @@ namespace Source.Audio
 {
     public class AudioRecorder : MonoBehaviour
     {
+        public delegate void SamplesRecordedCallback(int sequence, float[] samples);
+
         private AudioClip recording;
         private int lastPosition = 0;
         private int lastSequence = 0;
@@ -12,7 +14,7 @@ namespace Source.Audio
         public readonly int SampleRate = AudioConstants.SampleRate;
         public readonly float[] Buffer = new float[AudioConstants.AudioPacketSamplesSize];
 
-        public event Action<int, float[]> SamplesRecorded;
+        public event SamplesRecordedCallback SamplesRecorded;
 
         private void OnEnable()
         {

@@ -1,4 +1,3 @@
-using Exanite.Core.Collections;
 using UnityEngine;
 
 namespace Source.Audio
@@ -7,15 +6,22 @@ namespace Source.Audio
     {
         [SerializeField] private AudioRecorder recorder;
 
-        private RingBuffer<float[]> ringBuffer;
+        private float[][] buffers;
 
         private void Start()
         {
-            ringBuffer = new RingBuffer<float[]>(256);
-            for (var i = 0; i < ringBuffer.Count; i++)
+            buffers = new float[256][];
+            for (var i = 0; i < buffers.Length; i++)
             {
-                ringBuffer[i] = new float[AudioConstants.AudioPacketSamplesSize];
+                buffers[i] = new float[AudioConstants.AudioPacketSamplesSize];
             }
+
+            recorder.SamplesRecorded += OnSamplesRecorded;
+        }
+
+        private void OnSamplesRecorded(int sequence, float[] samples)
+        {
+            samples.CopyTo(buffers[sequence % buffers.Length], 0);
         }
     }
 }
