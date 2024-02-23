@@ -8,6 +8,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2270741585582802879, guid: 74632881762b63d498dfba37eeb5b7bd, type: 3}
+      propertyPath: m_Color.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2270741585582802879, guid: 74632881762b63d498dfba37eeb5b7bd, type: 3}
+      propertyPath: m_Color.g
+      value: 0.64705884
+      objectReference: {fileID: 0}
+    - target: {fileID: 4458443837778837346, guid: 74632881762b63d498dfba37eeb5b7bd, type: 3}
+      propertyPath: m_Color.b
+      value: 0.69411767
+      objectReference: {fileID: 0}
+    - target: {fileID: 4458443837778837346, guid: 74632881762b63d498dfba37eeb5b7bd, type: 3}
+      propertyPath: m_Color.g
+      value: 0.44705883
+      objectReference: {fileID: 0}
     - target: {fileID: 8157500971742464581, guid: 74632881762b63d498dfba37eeb5b7bd, type: 3}
       propertyPath: m_Name
       value: LocalPlayer
