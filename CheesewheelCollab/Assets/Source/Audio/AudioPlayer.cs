@@ -18,6 +18,8 @@ namespace Source.Audio
 
         private void Start()
         {
+            LoadHRTF();
+
             playbackClip = AudioClip.Create("Playback", AudioConstants.RecordingSampleRate * 10, 2, AudioConstants.RecordingSampleRate, false);
             audioSource.clip = playbackClip;
             audioSource.loop = true;
@@ -53,14 +55,22 @@ namespace Source.Audio
 
         private void LoadHRTF()
         {
+            //HRTF measured at 25 azimuth points (1st dim), 50 elevation points (2nd dim),
+            //  all at 5 degrees offset from the next point
             string path = Application.dataPath + "/Content/HRTFs/hrir58.mat";
 
             MatFileReader mfr = new MatFileReader(path);
 
+            Debug.Log(mfr.MatFileHeader.ToString());
             foreach (MLArray mla in mfr.Data)
             {
-                Debug.Log(mla.ContentToString() + "\n");
+                //Debug.Log(mla.ContentToString() + "\n");
             }
+
+            Debug.Log(mfr.Data[1].ContentToString() + "\n");
+            double[][] mld = ((MLDouble)mfr.Data[1]).GetArray();
+            Debug.Log(mld[0][0]);
+
         }
     }
 }
