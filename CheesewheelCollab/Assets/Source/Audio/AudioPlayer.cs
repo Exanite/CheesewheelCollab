@@ -50,5 +50,17 @@ namespace Source.Audio
         {
             samples.CopyTo(buffers[sequence % buffers.Length], 0);
         }
+
+        private void LoadHRTF()
+        {
+            string path = Application.dataPath + "/Content/HRTFs/hrir58.mat";
+
+            MatFileReader mfr = new MatFileReader(path);
+
+            foreach (MLArray mla in mfr.Data)
+            {
+                Debug.Log(mla.ContentToString() + "\n");
+            }
+        }
     }
 }
