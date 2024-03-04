@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using Exanite.Core.Utilities;
 using Exanite.Networking;
 using Exanite.Networking.Channels;
 using LiteNetLib.Utils;
@@ -201,7 +202,7 @@ namespace Source.Networking
             writer.Put(Time);
             for (var i = 0; i < Samples.Length; i++)
             {
-                writer.Put(Samples[i]);
+                writer.Put((short)MathUtility.Remap(Samples[i], -1, 1, short.MinValue, short.MaxValue));
             }
         }
 
@@ -210,7 +211,7 @@ namespace Source.Networking
             Time = reader.GetFloat();
             for (var i = 0; i < Samples.Length; i++)
             {
-                Samples[i] = reader.GetFloat();
+                Samples[i] = (short)MathUtility.Remap(reader.GetFloat(), short.MinValue, short.MaxValue, -1, 1);
             }
         }
     }
