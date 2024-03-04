@@ -8423,6 +8423,25 @@ namespace SDL2
 			out SDL_AudioSpec spec
 		);
 
+        [DllImport(nativeLibName, EntryPoint = "SDL_GetDefaultAudioInfo", CallingConvention = CallingConvention.Cdecl)]
+        private static extern unsafe int INTERNAL_SDL_GetDefaultAudioInfo(
+            byte** name,
+            out SDL_AudioSpec spec,
+            int iscapture
+        );
+        public static unsafe int SDL_GetDefaultAudioInfo(
+            out string name,
+            out SDL_AudioSpec spec,
+            int iscapture)
+        {
+            byte* utf8Name;
+            int result = INTERNAL_SDL_GetDefaultAudioInfo(&utf8Name, out spec, iscapture);
+
+            name = UTF8_ToManaged((IntPtr)utf8Name, true);
+
+            return result;
+        }
+
 		#endregion
 
 		#region SDL_timer.h
