@@ -12,9 +12,24 @@ namespace Source.Audio
         private uint deviceId = 0;
         private int sequence = 0;
 
+        // This callback is accessed by native C code
+        // Must save callback to field so it doesn't get GCed and cause a segfault
+        private SDL.SDL_AudioCallback audioCallback;
+
         private void Start()
         {
             SdlContext.Start();
+
+            audioCallback = (userdata, stream, len) =>
+            {
+                unsafe
+                {
+                    var streamData = new Span<float>((void*)stream, len / sizeof(float));
+                    streamData.CopyTo(Buffer);
+
+                    OnSamplesRecorded(sequence, Buffer);
+                }
+            };
 
             var requestedSpec = new SDL.SDL_AudioSpec
             {
@@ -22,16 +37,7 @@ namespace Source.Audio
                 format = SDL.AUDIO_F32,
                 channels = 1,
                 samples = 250,
-                callback = (userdata, stream, len) =>
-                {
-                    unsafe
-                    {
-                        var streamData = new Span<float>((void*)stream, len / sizeof(float));
-                        streamData.CopyTo(Buffer);
-
-                        OnSamplesRecorded(sequence, Buffer);
-                    }
-                },
+                callback = audioCallback,
             };
 
             var deviceNames = new List<string>();
