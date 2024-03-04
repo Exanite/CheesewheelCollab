@@ -54,7 +54,7 @@ namespace Source.Audio
                 throw new Exception(SDL.SDL_GetError());
             }
 
-            Debug.Log($"Default recording devices: {defaultDeviceName}");
+            Debug.Log($"Using default recording device: {defaultDeviceName}");
 
             deviceId = SDL.SDL_OpenAudioDevice(defaultDeviceName, 1, ref requestedSpec, out var actualSpec, 0);
             if (deviceId == 0)
