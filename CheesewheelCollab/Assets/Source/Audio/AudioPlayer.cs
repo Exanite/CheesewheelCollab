@@ -6,7 +6,6 @@ using csmatio.io;
 using Exanite.Core.Utilities;
 using SDL2;
 using Source.Sdl;
-using Random = System.Random;
 
 namespace Source.Audio
 {
@@ -46,10 +45,8 @@ namespace Source.Audio
             {
                 unsafe
                 {
-                    var random = new Random();
-
                     var streamData = new Span<float>((void*)stream, len / sizeof(float));
-                    streamData.Clear();
+                    streamData.Clear(); // For safety
 
                     for (var i = 0; i < streamData.Length; i++)
                     {
