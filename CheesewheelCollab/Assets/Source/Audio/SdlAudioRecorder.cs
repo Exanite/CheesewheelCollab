@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Exanite.Core.Utilities;
 using SDL2;
+using Source.Sdl;
 using UnityEngine;
 
 namespace Source.Audio
@@ -13,10 +14,7 @@ namespace Source.Audio
 
         private void Start()
         {
-            if (SDL.SDL_Init(SDL.SDL_INIT_AUDIO) != 0)
-            {
-                throw new Exception(SDL.SDL_GetError());
-            }
+            SdlContext.Start();
 
             var requestedSpec = new SDL.SDL_AudioSpec
             {
@@ -68,6 +66,8 @@ namespace Source.Audio
                 SDL.SDL_CloseAudioDevice(deviceId);
                 deviceId = 0;
             }
+
+            SdlContext.Stop();
         }
     }
 }
