@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Exanite.Core.Utilities;
 using SDL2;
@@ -31,9 +32,17 @@ namespace Source.Audio
 
             Debug.Log($"Available recording devices: {DebugUtility.Format(deviceNames)}");
 
-            var deviceId = (int)SDL.SDL_OpenAudioDevice("", 1, ref requestedSpec, out var actualSpec, 0);
-            var deviceName = SDL.SDL_GetAudioDeviceName(deviceId, 1);
-            Debug.Log($"Recording using {deviceName}");
+            if (SDL.SDL_GetDefaultAudioInfo(out var defaultDeviceName, out _, 1) != 0)
+            {
+                throw new Exception(SDL.SDL_GetError());
+            }
+
+            Debug.Log($"Default recording devices: {defaultDeviceName}");
+
+            if (SDL.SDL_OpenAudioDevice(defaultDeviceName, 1, ref requestedSpec, out var actualSpec, 0) == 0)
+            {
+                throw new Exception(SDL.SDL_GetError());
+            }
 
             actualSpec.size.Dump();
         }
