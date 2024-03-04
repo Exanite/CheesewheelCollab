@@ -6,9 +6,10 @@ using UnityEngine;
 
 namespace Source.Audio
 {
-    public class SdlAudioRecorder : MonoBehaviour
+    public class SdlAudioRecorder : AudioRecorder
     {
         private uint deviceId = 0;
+        private int sequence = 0;
 
         private void Start()
         {
@@ -19,13 +20,19 @@ namespace Source.Audio
 
             var requestedSpec = new SDL.SDL_AudioSpec
             {
-                freq = 44100,
+                freq = SampleRate,
                 format = SDL.AUDIO_F32,
                 channels = 1,
                 samples = 250,
                 callback = (userdata, stream, len) =>
                 {
-                    "Test".Dump();
+                    unsafe
+                    {
+                        var streamData = new Span<float>((void*)stream, len / sizeof(float));
+                        streamData.CopyTo(Buffer);
+
+                        OnSamplesRecorded(sequence, Buffer);
+                    }
                 },
             };
 

@@ -2,16 +2,11 @@ using UnityEngine;
 
 namespace Source.Audio
 {
-    public class UnityAudioRecorder : MonoBehaviour
+    public class UnityAudioRecorder : AudioRecorder
     {
         private AudioClip recording;
         private int lastPosition = 0;
-        private int lastSequence = 0;
-
-        public readonly int SampleRate = AudioConstants.RecordingSampleRate;
-        public readonly float[] Buffer = new float[AudioConstants.AudioPacketSamplesSize];
-
-        public event SamplesRecordedCallback SamplesRecorded;
+        private int sequence = 0;
 
         private void OnEnable()
         {
@@ -62,7 +57,7 @@ namespace Source.Audio
 
         private void SendSamples()
         {
-            SamplesRecorded?.Invoke(lastSequence++, Buffer);
+            OnSamplesRecorded(sequence++, Buffer);
         }
     }
 }

@@ -9,7 +9,7 @@ namespace Source.Audio
 {
     public class FftRenderer : MonoBehaviour
     {
-        [SerializeField] private UnityAudioRecorder recorder;
+        [SerializeField] private AudioRecorder recorder;
         [SerializeField] private RawImage image;
 
         [SerializeField] private int minFrequency = 0;
