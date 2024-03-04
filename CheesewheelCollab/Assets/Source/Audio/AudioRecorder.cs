@@ -11,7 +11,7 @@ namespace Source.Audio
 
         protected void OnSamplesRecorded(int sequence, float[] buffer)
         {
-
+            SamplesRecorded?.Invoke(sequence, buffer);
         }
     }
 }
