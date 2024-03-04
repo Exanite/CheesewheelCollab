@@ -9,12 +9,13 @@ namespace Source.Audio
 {
     public class SdlAudioRecorder : AudioRecorder
     {
-        private uint deviceId = 0;
         private int sequence = 0;
 
         // This callback is accessed by native C code
         // Must save callback to field so it doesn't get GCed and cause a segfault
         private SDL.SDL_AudioCallback audioCallback;
+        private SDL.SDL_AudioSpec spec;
+        private uint deviceId;
 
         private void Start()
         {
@@ -31,7 +32,7 @@ namespace Source.Audio
                 }
             };
 
-            var requestedSpec = new SDL.SDL_AudioSpec
+            spec = new SDL.SDL_AudioSpec
             {
                 freq = SampleRate,
                 format = SDL.AUDIO_F32,
@@ -56,11 +57,13 @@ namespace Source.Audio
 
             Debug.Log($"Using default recording device: {defaultDeviceName}");
 
-            deviceId = SDL.SDL_OpenAudioDevice(defaultDeviceName, 1, ref requestedSpec, out var actualSpec, 0);
+            deviceId = SDL.SDL_OpenAudioDevice(defaultDeviceName, 1, ref spec, out var actualSpec, 0);
             if (deviceId == 0)
             {
                 throw new Exception(SDL.SDL_GetError());
             }
+
+            spec = actualSpec;
 
             SDL.SDL_PauseAudioDevice(deviceId, 0);
         }

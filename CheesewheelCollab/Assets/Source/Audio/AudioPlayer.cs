@@ -1,43 +1,35 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using csmatio.types;
 using csmatio.io;
+using Exanite.Core.Utilities;
+using SDL2;
+using Source.Sdl;
+using Random = System.Random;
 
 namespace Source.Audio
 {
     public class AudioPlayer : MonoBehaviour
     {
         [Header("Dependencies")]
-        [SerializeField] private UnityAudioRecorder recorder;
-        [SerializeField] private AudioSource audioSource;
+        [SerializeField] private AudioRecorder recorder;
 
         [Header("Settings")]
         private float delaySeconds = 1;
 
         private float[][] buffers;
-        private AudioClip playbackClip;
+
+        // This callback is accessed by native C code
+        // Must save callback to field so it doesn't get GCed and cause a segfault
+        private SDL.SDL_AudioCallback audioCallback;
+        private SDL.SDL_AudioSpec spec;
+        private uint deviceId;
+        private int sequence;
 
         private void Start()
         {
             LoadHRTF();
-
-            playbackClip = AudioClip.Create("Playback", AudioConstants.RecordingSampleRate * 10, 2, AudioConstants.RecordingSampleRate, false);
-            audioSource.clip = playbackClip;
-            audioSource.loop = true;
-            audioSource.Play();
-
-            var samples = new float[AudioConstants.AudioPacketSamplesSize];
-            for (var chunkI = 0; chunkI < playbackClip.samples / AudioConstants.AudioPacketSamplesSize; chunkI++)
-            {
-                for (var sampleI = 0; sampleI < AudioConstants.AudioPacketSamplesSize; sampleI++)
-                {
-                    var time = (chunkI * sampleI) / AudioConstants.RecordingSampleRate;
-                    var y = Mathf.Sin(2 * Mathf.PI * time * 440);
-                    samples[sampleI] = y;
-                }
-
-                var startIndex = chunkI * AudioConstants.AudioPacketSamplesSize;
-                playbackClip.SetData(samples, startIndex);
-            }
 
             buffers = new float[256][];
             for (var i = 0; i < buffers.Length; i++)
@@ -46,6 +38,74 @@ namespace Source.Audio
             }
 
             recorder.SamplesRecorded += OnSamplesRecorded;
+
+            SdlContext.Start();
+
+            var sampleRate = 40000;
+            audioCallback = (userdata, stream, len) =>
+            {
+                unsafe
+                {
+                    var random = new Random();
+
+                    var streamData = new Span<float>((void*)stream, len / sizeof(float));
+                    streamData.Clear();
+
+                    for (var i = 0; i < streamData.Length; i++)
+                    {
+                        var time = (float)(i + sequence * streamData.Length) / sampleRate;
+                        streamData[i] = Mathf.Sin(2 * Mathf.PI * 440 * time);
+                    }
+
+                    sequence++;
+                }
+            };
+
+            spec = new SDL.SDL_AudioSpec
+            {
+                freq = sampleRate,
+                format = SDL.AUDIO_F32,
+                channels = 1,
+                samples = AudioConstants.AudioPacketSamplesSize,
+                callback = audioCallback,
+            };
+
+            var deviceNames = new List<string>();
+            var deviceCount = SDL.SDL_GetNumAudioDevices(1);
+            for (var i = 0; i < deviceCount; i++)
+            {
+                deviceNames.Add(SDL.SDL_GetAudioDeviceName(i, 0));
+            }
+
+            Debug.Log($"Available playback devices: {DebugUtility.Format(deviceNames)}");
+
+            if (SDL.SDL_GetDefaultAudioInfo(out var defaultDeviceName, out _, 0) != 0)
+            {
+                throw new Exception(SDL.SDL_GetError());
+            }
+
+            Debug.Log($"Using default playback device: {defaultDeviceName}");
+
+            deviceId = SDL.SDL_OpenAudioDevice(defaultDeviceName, 0, ref spec, out var actualSpec, 0);
+            if (deviceId == 0)
+            {
+                throw new Exception(SDL.SDL_GetError());
+            }
+
+            spec = actualSpec;
+
+            SDL.SDL_PauseAudioDevice(deviceId, 0);
+        }
+
+        private void OnDestroy()
+        {
+            if (deviceId != 0)
+            {
+                SDL.SDL_CloseAudioDevice(deviceId);
+                deviceId = 0;
+            }
+
+            SdlContext.Stop();
         }
 
         private void OnSamplesRecorded(int sequence, float[] samples)
@@ -70,7 +130,6 @@ namespace Source.Audio
             Debug.Log(mfr.Data[1].ContentToString() + "\n");
             double[][] mld = ((MLDouble)mfr.Data[1]).GetArray();
             Debug.Log(mld[0][0]);
-
         }
     }
 }
