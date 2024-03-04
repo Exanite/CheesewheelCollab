@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Source.Audio
 {
-    public class AudioRecorder2 : MonoBehaviour
+    public class SdlAudioRecorder : MonoBehaviour
     {
         private uint deviceId = 0;
 

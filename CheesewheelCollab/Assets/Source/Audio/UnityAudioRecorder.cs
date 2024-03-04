@@ -2,10 +2,8 @@ using UnityEngine;
 
 namespace Source.Audio
 {
-    public class AudioRecorder : MonoBehaviour
+    public class UnityAudioRecorder : MonoBehaviour
     {
-        public delegate void SamplesRecordedCallback(int sequence, float[] samples);
-
         private AudioClip recording;
         private int lastPosition = 0;
         private int lastSequence = 0;

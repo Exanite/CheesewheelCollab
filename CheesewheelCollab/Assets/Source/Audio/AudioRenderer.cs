@@ -6,7 +6,7 @@ namespace Source.Audio
 {
     public class AudioRenderer : MonoBehaviour
     {
-        [SerializeField] private AudioRecorder recorder;
+        [SerializeField] private UnityAudioRecorder recorder;
         [SerializeField] private RawImage image;
 
         private Texture2D texture;

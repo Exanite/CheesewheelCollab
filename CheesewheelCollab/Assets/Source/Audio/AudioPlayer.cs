@@ -7,7 +7,7 @@ namespace Source.Audio
     public class AudioPlayer : MonoBehaviour
     {
         [Header("Dependencies")]
-        [SerializeField] private AudioRecorder recorder;
+        [SerializeField] private UnityAudioRecorder recorder;
         [SerializeField] private AudioSource audioSource;
 
         [Header("Settings")]
