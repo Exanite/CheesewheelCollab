@@ -8,9 +8,15 @@ namespace Source.Audio
 {
     public class AudioRecorder2 : MonoBehaviour
     {
+        private uint deviceId = 0;
+
         private void Start()
         {
-            SDL.SDL_Init(SDL.SDL_INIT_AUDIO);
+            if (SDL.SDL_Init(SDL.SDL_INIT_AUDIO) != 0)
+            {
+                throw new Exception(SDL.SDL_GetError());
+            }
+
             var requestedSpec = new SDL.SDL_AudioSpec
             {
                 freq = 44100,
@@ -39,12 +45,22 @@ namespace Source.Audio
 
             Debug.Log($"Default recording devices: {defaultDeviceName}");
 
-            if (SDL.SDL_OpenAudioDevice(defaultDeviceName, 1, ref requestedSpec, out var actualSpec, 0) == 0)
+            deviceId = SDL.SDL_OpenAudioDevice(defaultDeviceName, 1, ref requestedSpec, out var actualSpec, 0);
+            if (deviceId == 0)
             {
                 throw new Exception(SDL.SDL_GetError());
             }
 
-            actualSpec.size.Dump();
+            SDL.SDL_PauseAudioDevice(deviceId, 0);
+        }
+
+        private void OnDestroy()
+        {
+            if (deviceId != 0)
+            {
+                SDL.SDL_CloseAudioDevice(deviceId);
+                deviceId = 0;
+            }
         }
     }
 }
