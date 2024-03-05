@@ -48,13 +48,16 @@ namespace Source.Audio
                     var streamData = new Span<float>((void*)stream, len / sizeof(float));
                     streamData.Clear(); // For safety
 
-                    for (var i = 0; i < streamData.Length; i++)
-                    {
-                        var time = (float)(i + sequence * streamData.Length) / sampleRate;
-                        streamData[i] = Mathf.Sin(2 * Mathf.PI * 440 * time);
-                    }
+                    var currentBuffer = buffers[MathUtility.Wrap(sequence++ - 1, 0, buffers.Length)];
+                    currentBuffer.CopyTo(streamData);
 
-                    sequence++;
+                    // for (var i = 0; i < streamData.Length; i++)
+                    // {
+                    //     var time = (float)(i + sequence * streamData.Length) / sampleRate;
+                    //     streamData[i] = Mathf.Sin(2 * Mathf.PI * 440 * time);
+                    // }
+                    //
+                    // sequence++;
                 }
             };
 
