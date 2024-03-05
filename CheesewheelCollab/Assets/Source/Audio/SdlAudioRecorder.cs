@@ -37,7 +37,7 @@ namespace Source.Audio
                 freq = SampleRate,
                 format = SDL.AUDIO_F32,
                 channels = 1,
-                samples = 250,
+                samples = AudioConstants.AudioPacketSamplesSize,
                 callback = audioCallback,
             };
 

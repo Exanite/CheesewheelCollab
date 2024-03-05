@@ -40,7 +40,7 @@ namespace Source.Audio
 
             SdlContext.Start();
 
-            var sampleRate = 40000;
+            var sampleRate = AudioConstants.RecordingSampleRate;
             audioCallback = (userdata, stream, len) =>
             {
                 unsafe
