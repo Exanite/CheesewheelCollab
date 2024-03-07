@@ -14,13 +14,10 @@ namespace Source.Audio
         private SDL.SDL_AudioSpec spec;
         private uint deviceId;
 
-        private readonly int sampleRate;
-
         public AudioOutput(int sampleRate, int channels)
         {
             SdlContext.Start();
 
-            this.sampleRate = sampleRate;
             spec = new SDL.SDL_AudioSpec
             {
                 freq = sampleRate,
@@ -35,12 +32,14 @@ namespace Source.Audio
             {
                 deviceNames.Add(SDL.SDL_GetAudioDeviceName(i, 0));
             }
+
             Debug.Log($"Available playback devices: {DebugUtility.Format(deviceNames)}");
 
             if (SDL.SDL_GetDefaultAudioInfo(out var defaultDeviceName, out _, 0) != 0)
             {
                 throw new Exception(SDL.SDL_GetError());
             }
+
             Debug.Log($"Using default playback device: {defaultDeviceName}");
 
             deviceId = SDL.SDL_OpenAudioDevice(defaultDeviceName, 0, ref spec, out var actualSpec, 0);
@@ -54,8 +53,30 @@ namespace Source.Audio
             SDL.SDL_PauseAudioDevice(deviceId, 0);
         }
 
-        public int QueuedSampleCount => (int)(SDL.SDL_GetQueuedAudioSize(deviceId) / sizeof(float));
+        public int SampleRate => spec.freq;
+        public int Channels => spec.channels;
 
+        /// <summary>
+        /// The total number of samples that are queued in all channels.
+        /// </summary>
+        public int QueuedSamplesAllChannels => (int)(SDL.SDL_GetQueuedAudioSize(deviceId) / sizeof(float));
+
+        /// <summary>
+        /// The number of samples that are queued divided by the number of channels.
+        /// </summary>
+        public int QueuedSamplesPerChannel => QueuedSamplesAllChannels / spec.channels;
+
+        /// <summary>
+        /// How long the queued samples will be played for before running out (seconds).
+        /// </summary>
+        public float QueuedDuration => (float)QueuedSamplesPerChannel / SampleRate;
+
+        /// <summary>
+        /// Queues samples to be played.
+        /// <para/>
+        /// When using multiple channels, samples should be interleaved.
+        /// For example: Stereo samples should be provided in a LRLRLR ordering.
+        /// </summary>
         public unsafe void QueueSamples(Span<float> samples)
         {
             fixed (float* samplesP = samples)

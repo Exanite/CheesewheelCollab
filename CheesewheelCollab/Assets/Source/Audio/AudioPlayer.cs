@@ -61,7 +61,7 @@ namespace Source.Audio
 
         private void Update()
         {
-            var queuedSamples = output.QueuedSampleCount;
+            var queuedSamples = output.QueuedSamplesPerChannel;
             var targetQueuedSamples = AudioConstants.SampleRate * queueSeconds;
 
             if (queuedSamples < targetQueuedSamples)
