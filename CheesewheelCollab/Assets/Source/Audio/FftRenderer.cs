@@ -58,7 +58,7 @@ namespace Source.Audio
 
         private float GetFftAmplitude(Complex[] fft, float frequency)
         {
-            var index = Mathf.Clamp((int)(frequency * fft.Length / recorder.SampleRate), 0, fft.Length - 1);
+            var index = Mathf.Clamp((int)(frequency * fft.Length / AudioConstants.SampleRate), 0, fft.Length - 1);
             return (float)fft[index].Magnitude;
         }
     }

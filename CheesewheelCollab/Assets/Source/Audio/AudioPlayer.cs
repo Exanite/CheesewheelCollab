@@ -14,13 +14,19 @@ namespace Source.Audio
         [Header("Dependencies")]
         [SerializeField] private AudioRecorder recorder;
 
+        // Total delay = network delay + buffer + queue (need to validate this - William)
         [Header("Settings")]
-        private float delaySeconds = 1;
+        [Tooltip("Audio will be buffered for this long before being used. Lower numbers = less delay, but can lead to incomplete data => silence.")]
+        private float bufferSeconds = 1;
+        // Guess: This probably can be kept fairly low (maybe 4 frames, even less if processed on background thread)
+        [Tooltip("This amount of audio data will be kept in the queue. Lower numbers = less latency, but can lead to audio popping.")]
+        private float queueSeconds = 0.5f;
 
         // Currently 256 buffers * 500 samples per buffer / 10000 Hz = 12.8 seconds of buffers.
         // Window must be <= 12.8 / 2, therefore we can have 6.4 seconds of buffering.
         // This means we can have a max delay of 6.4 seconds. Our min delay is 0 seconds, but that can cause issues.
         private float[][] buffers;
+        private float[] activeBuffer;
 
         private SDL.SDL_AudioSpec spec;
         private uint deviceId;
@@ -30,6 +36,7 @@ namespace Source.Audio
         {
             LoadHRTF();
 
+            activeBuffer = new float[AudioConstants.SamplesChunkSize];
             buffers = new float[256][];
             for (var i = 0; i < buffers.Length; i++)
             {
@@ -84,6 +91,29 @@ namespace Source.Audio
             }
 
             SdlContext.Stop();
+        }
+
+        private unsafe void Update()
+        {
+            var queuedSamples = SDL.SDL_GetQueuedAudioSize(deviceId) / sizeof(float);
+            var targetQueuedSamples = AudioConstants.SampleRate * queueSeconds;
+
+            if (queuedSamples < targetQueuedSamples)
+            {
+                for (var i = 0; i < activeBuffer.Length; i++)
+                {
+                    var time = (float)(sequence * activeBuffer.Length + i) / AudioConstants.SampleRate;
+
+                    activeBuffer[i] = Mathf.Sin(2 * Mathf.PI * 440 * time);
+                }
+
+                sequence++;
+
+                fixed (float* activeBufferP = activeBuffer)
+                {
+                    SDL.SDL_QueueAudio(deviceId, (IntPtr)activeBufferP, (uint)(activeBuffer.Length * sizeof(float)));
+                }
+            }
         }
 
         private void OnSamplesRecorded(int sequence, float[] samples)
