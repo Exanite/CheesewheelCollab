@@ -11,14 +11,14 @@ namespace Source.Audio
         /// </remarks>
         public event SamplesAvailableCallback SamplesAvailable;
 
-        protected void OnSamplesAvailable(int sequence, float[] buffer)
+        protected void OnSamplesAvailable(int chunk, float[] buffer)
         {
             for (var i = 0; i < buffer.Length; i++)
             {
                 buffer[i] = Mathf.Clamp(buffer[i], -1, 1);
             }
 
-            SamplesAvailable?.Invoke(sequence, buffer);
+            SamplesAvailable?.Invoke(chunk, buffer);
         }
     }
 }

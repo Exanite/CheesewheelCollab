@@ -6,7 +6,7 @@ namespace Source.Audio
     {
         private AudioClip recording;
         private int lastPosition = 0;
-        private int sequence = 0;
+        private int chunk = 0;
 
         private void OnEnable()
         {
@@ -57,7 +57,7 @@ namespace Source.Audio
 
         private void SendSamples()
         {
-            OnSamplesAvailable(sequence++, Buffer);
+            OnSamplesAvailable(chunk++, Buffer);
         }
     }
 }

@@ -1,4 +1,4 @@
 namespace Source.Audio
 {
-    public delegate void SamplesAvailableCallback(int sequence, float[] samples);
+    public delegate void SamplesAvailableCallback(int chunk, float[] samples);
 }

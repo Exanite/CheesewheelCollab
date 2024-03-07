@@ -9,7 +9,7 @@ namespace Source.Audio
 {
     public class SdlAudioRecorder : AudioRecorder
     {
-        private int sequence = 0;
+        private int chunk = 0;
 
         // This callback is accessed by native C code
         // Must save callback to field so it doesn't get GCed and cause a segfault
@@ -28,7 +28,7 @@ namespace Source.Audio
                     var streamData = new Span<float>((void*)stream, len / sizeof(float));
                     streamData.CopyTo(Buffer);
 
-                    OnSamplesAvailable(sequence++, Buffer);
+                    OnSamplesAvailable(chunk++, Buffer);
                 }
             };
 
