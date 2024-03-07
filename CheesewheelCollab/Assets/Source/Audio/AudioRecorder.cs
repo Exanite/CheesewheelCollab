@@ -11,6 +11,11 @@ namespace Source.Audio
 
         protected void OnSamplesRecorded(int sequence, float[] buffer)
         {
+            for (var i = 0; i < buffer.Length; i++)
+            {
+                buffer[i] = Mathf.Clamp(buffer[i], -1, 1);
+            }
+
             SamplesRecorded?.Invoke(sequence, buffer);
         }
     }
