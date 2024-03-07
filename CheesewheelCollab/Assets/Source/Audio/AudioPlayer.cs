@@ -1,11 +1,7 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 using csmatio.types;
 using csmatio.io;
-using Exanite.Core.Utilities;
-using SDL2;
-using Source.Sdl;
 
 namespace Source.Audio
 {
@@ -28,9 +24,6 @@ namespace Source.Audio
         private float[][] buffers;
         private float[] activeBuffer;
 
-        private SDL.SDL_AudioSpec spec;
-        private uint deviceId;
-
         /// <summary>
         /// Max sequence received from AudioRecorder / network
         /// </summary>
@@ -40,6 +33,8 @@ namespace Source.Audio
         /// Last sequence output to speakers
         /// </summary>
         private int lastOutputSequence;
+
+        private AudioOutput output;
 
         private void Start()
         {
@@ -54,59 +49,19 @@ namespace Source.Audio
 
             recorder.SamplesAvailable += OnSamplesAvailable;
 
-            SdlContext.Start();
-
-            spec = new SDL.SDL_AudioSpec
-            {
-                freq = AudioConstants.SampleRate,
-                format = SDL.AUDIO_F32,
-                channels = 1,
-                samples = AudioConstants.SamplesChunkSize,
-            };
-
-            var deviceNames = new List<string>();
-            var deviceCount = SDL.SDL_GetNumAudioDevices(1);
-            for (var i = 0; i < deviceCount; i++)
-            {
-                deviceNames.Add(SDL.SDL_GetAudioDeviceName(i, 0));
-            }
-
-            Debug.Log($"Available playback devices: {DebugUtility.Format(deviceNames)}");
-
-            if (SDL.SDL_GetDefaultAudioInfo(out var defaultDeviceName, out _, 0) != 0)
-            {
-                throw new Exception(SDL.SDL_GetError());
-            }
-
-            Debug.Log($"Using default playback device: {defaultDeviceName}");
-
-            deviceId = SDL.SDL_OpenAudioDevice(defaultDeviceName, 0, ref spec, out var actualSpec, 0);
-            if (deviceId == 0)
-            {
-                throw new Exception(SDL.SDL_GetError());
-            }
-
-            spec = actualSpec;
-
-            SDL.SDL_PauseAudioDevice(deviceId, 0);
+            output = new AudioOutput(AudioConstants.SamplesChunkSize);
         }
 
         private void OnDestroy()
         {
-            if (deviceId != 0)
-            {
-                SDL.SDL_CloseAudioDevice(deviceId);
-                deviceId = 0;
-            }
-
-            SdlContext.Stop();
+            output.Dispose();
         }
 
         // private int sineSequence;
 
-        private unsafe void Update()
+        private void Update()
         {
-            var queuedSamples = SDL.SDL_GetQueuedAudioSize(deviceId) / sizeof(float);
+            var queuedSamples = output.QueuedSampleCount;
             var targetQueuedSamples = AudioConstants.SampleRate * queueSeconds;
 
             if (queuedSamples < targetQueuedSamples)
@@ -141,10 +96,7 @@ namespace Source.Audio
                 {
                     activeBuffer[i] = Mathf.Clamp(activeBuffer[i], -1, 1);
                 }
-                fixed (float* activeBufferP = activeBuffer)
-                {
-                    SDL.SDL_QueueAudio(deviceId, (IntPtr)activeBufferP, (uint)(activeBuffer.Length * sizeof(float)));
-                }
+                output.QueueSamples(activeBuffer);
                 activeBuffer.AsSpan().Clear();
             }
         }
