@@ -195,7 +195,7 @@ namespace Source.Networking
 
         // We'll probably send 500 samples with 2 bytes each (16 bit precision)
         // Max UDP MTU is 1460-ish, but we'll send ~1000 to be safe
-        public readonly float[] Samples = new float[AudioConstants.AudioPacketSamplesSize];
+        public readonly float[] Samples = new float[AudioConstants.SamplesChunkSize];
 
         public void Serialize(NetDataWriter writer)
         {

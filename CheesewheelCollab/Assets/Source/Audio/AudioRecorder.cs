@@ -4,8 +4,7 @@ namespace Source.Audio
 {
     public abstract class AudioRecorder : MonoBehaviour
     {
-        public readonly int SampleRate = AudioConstants.RecordingSampleRate;
-        public readonly float[] Buffer = new float[AudioConstants.AudioPacketSamplesSize];
+        public readonly float[] Buffer = new float[AudioConstants.SamplesChunkSize];
 
         public event SamplesAvailableCallback SamplesRecorded;
 

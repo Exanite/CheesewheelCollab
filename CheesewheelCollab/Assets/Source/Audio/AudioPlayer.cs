@@ -22,9 +22,6 @@ namespace Source.Audio
         // This means we can have a max delay of 6.4 seconds. Our min delay is 0 seconds, but that can cause issues.
         private float[][] buffers;
 
-        // This callback is accessed by native C code
-        // Must save callback to field so it doesn't get GCed and cause a segfault
-        private SDL.SDL_AudioCallback audioCallback;
         private SDL.SDL_AudioSpec spec;
         private uint deviceId;
         private int sequence;
@@ -36,41 +33,19 @@ namespace Source.Audio
             buffers = new float[256][];
             for (var i = 0; i < buffers.Length; i++)
             {
-                buffers[i] = new float[AudioConstants.AudioPacketSamplesSize];
+                buffers[i] = new float[AudioConstants.SamplesChunkSize];
             }
 
             recorder.SamplesRecorded += OnSamplesRecorded;
 
             SdlContext.Start();
 
-            var sampleRate = AudioConstants.RecordingSampleRate;
-            audioCallback = (userdata, stream, len) =>
-            {
-                unsafe
-                {
-                    var streamData = new Span<float>((void*)stream, len / sizeof(float));
-                    streamData.Clear(); // For safety
-
-                    var currentBuffer = buffers[MathUtility.Wrap(sequence++ - 1, 0, buffers.Length)];
-                    currentBuffer.CopyTo(streamData);
-
-                    // for (var i = 0; i < streamData.Length; i++)
-                    // {
-                    //     var time = (float)(i + sequence * streamData.Length) / sampleRate;
-                    //     streamData[i] = Mathf.Sin(2 * Mathf.PI * 440 * time);
-                    // }
-                    //
-                    // sequence++;
-                }
-            };
-
             spec = new SDL.SDL_AudioSpec
             {
-                freq = sampleRate,
+                freq = AudioConstants.SampleRate,
                 format = SDL.AUDIO_F32,
                 channels = 1,
-                samples = AudioConstants.AudioPacketSamplesSize,
-                callback = audioCallback,
+                samples = AudioConstants.SamplesChunkSize,
             };
 
             var deviceNames = new List<string>();
