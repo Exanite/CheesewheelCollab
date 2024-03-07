@@ -10,13 +10,11 @@ namespace Source.Audio
         [Header("Dependencies")]
         [SerializeField] private AudioRecorder recorder;
 
-        // Total delay = network delay + buffer + queue (need to validate this - William)
+        // See https://trello.com/c/rQ9w7TyA/26-audio-format
         [Header("Settings")]
-        [Tooltip("Audio will be buffered for this long before being used. Lower numbers = less delay, but can lead to incomplete data => silence.")]
-        private float bufferSeconds = 1;
-        // Guess: This probably can be kept fairly low (maybe 4 frames, even less if processed on background thread)
-        [Tooltip("This amount of audio data will be kept in the queue. Lower numbers = less latency, but can lead to audio popping.")]
-        private float queueSeconds = 0.5f;
+        [SerializeField] private int minimumChunksBuffered = 5;
+        [SerializeField] private int maximumChunksBuffered = 10;
+        [SerializeField] private int minimumChunksQueued = 2;
 
         // Currently 256 buffers * 500 samples per buffer / 10000 Hz = 12.8 seconds of buffers.
         // Window must be <= 12.8 / 2, therefore we can have 6.4 seconds of buffering.
@@ -61,19 +59,17 @@ namespace Source.Audio
 
         private void Update()
         {
-            var queuedSamples = output.QueuedSamplesPerChannel;
-            var targetQueuedSamples = AudioConstants.SampleRate * queueSeconds;
-
-            if (queuedSamples < targetQueuedSamples)
+            var queuedChunks = output.QueuedSamplesPerChannel / AudioConstants.SamplesChunkSize;
+            if (queuedChunks < minimumChunksQueued)
             {
                 // Stay at most 10 sequences behind
-                if (maxReceivedSequence - lastOutputSequence > 10)
+                if (maxReceivedSequence - lastOutputSequence > maximumChunksBuffered)
                 {
-                    lastOutputSequence = maxReceivedSequence - 5;
+                    lastOutputSequence = maxReceivedSequence - maximumChunksBuffered;
                 }
 
                 // Stay at least 5 sequences behind
-                if (lastOutputSequence + 5 < maxReceivedSequence)
+                if (maxReceivedSequence - lastOutputSequence > minimumChunksBuffered)
                 {
                     lastOutputSequence++;
                     buffers[lastOutputSequence % buffers.Length].CopyTo(activeBuffer, 0);
