@@ -16,7 +16,7 @@ namespace Source.Audio
 
         private readonly int sampleRate;
 
-        public AudioOutput(int sampleRate)
+        public AudioOutput(int sampleRate, int channels)
         {
             SdlContext.Start();
 
@@ -25,7 +25,7 @@ namespace Source.Audio
             {
                 freq = sampleRate,
                 format = SDL.AUDIO_F32,
-                channels = 1,
+                channels = (byte)channels,
                 samples = AudioConstants.SamplesChunkSize,
             };
 
