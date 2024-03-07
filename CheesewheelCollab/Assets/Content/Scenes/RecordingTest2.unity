@@ -229,7 +229,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   recorder: {fileID: 196124097}
-  audioSource: {fileID: 0}
 --- !u!4 &169871577
 Transform:
   m_ObjectHideFlags: 0
@@ -342,7 +341,8 @@ MonoBehaviour:
   recorder: {fileID: 196124097}
   image: {fileID: 424293168}
   minFrequency: 0
-  maxFrequency: 20000
+  maxFrequency: 5000
+  maxRenderableFrequency: 0
 --- !u!114 &424293168
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -17,6 +17,9 @@ namespace Source.Audio
         [SerializeField] private int minFrequency = 0;
         [SerializeField] private int maxFrequency = 20000;
 
+        [Tooltip("Updated during play mode.")]
+        [SerializeField] private int maxRenderableFrequency;
+
         private Texture2D texture;
         private float[] buffer;
 
@@ -36,6 +39,8 @@ namespace Source.Audio
             {
                 return;
             }
+
+            maxRenderableFrequency = AudioConstants.SampleRate / 2;
 
             var fft = buffer.Select(y => new Complex(y, 0)).ToArray();
             Fourier.Forward(fft, FourierOptions.Default);
