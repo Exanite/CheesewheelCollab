@@ -32,9 +32,9 @@ namespace Source.Audio
         private uint deviceId;
 
         /// <summary>
-        /// Last sequence received from AudioRecorder / network
+        /// Max sequence received from AudioRecorder / network
         /// </summary>
-        private int lastReceivedSequence;
+        private int maxReceivedSequence;
 
         /// <summary>
         /// Last sequence output to speakers
@@ -110,13 +110,13 @@ namespace Source.Audio
             if (queuedSamples < targetQueuedSamples)
             {
                 // Stay at most 10 sequences behind
-                if (lastReceivedSequence - lastOutputSequence > 10)
+                if (maxReceivedSequence - lastOutputSequence > 10)
                 {
-                    lastOutputSequence = lastReceivedSequence - 5;
+                    lastOutputSequence = maxReceivedSequence - 5;
                 }
 
                 // Stay at least 5 sequences behind
-                if (lastOutputSequence + 5 < lastReceivedSequence)
+                if (lastOutputSequence + 5 < maxReceivedSequence)
                 {
                     lastOutputSequence++;
                     buffers[lastOutputSequence % buffers.Length].CopyTo(activeBuffer, 0);
@@ -141,7 +141,7 @@ namespace Source.Audio
         private void OnSamplesRecorded(int sequence, float[] samples)
         {
             // Assumes sequence is strictly increasing
-            lastReceivedSequence = Mathf.Max(lastReceivedSequence, sequence);
+            maxReceivedSequence = Mathf.Max(maxReceivedSequence, sequence);
             samples.CopyTo(buffers[sequence % buffers.Length], 0);
         }
 
