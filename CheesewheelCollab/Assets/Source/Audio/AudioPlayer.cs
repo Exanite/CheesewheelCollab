@@ -49,7 +49,7 @@ namespace Source.Audio
 
             recorder.SamplesAvailable += OnSamplesAvailable;
 
-            output = new AudioOutput(AudioConstants.SamplesChunkSize);
+            output = new AudioOutput(AudioConstants.SampleRate);
         }
 
         private void OnDestroy()
