@@ -756,7 +756,7 @@ GameObject:
   m_Component:
   - component: {fileID: 839325102}
   m_Layer: 0
-  m_Name: Recording might have popping
+  m_Name: Recording might be choppy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
