@@ -7,9 +7,9 @@ namespace Source.Audio
         public readonly int SampleRate = AudioConstants.RecordingSampleRate;
         public readonly float[] Buffer = new float[AudioConstants.AudioPacketSamplesSize];
 
-        public event SamplesRecordedCallback SamplesRecorded;
+        public event SamplesAvailableCallback SamplesRecorded;
 
-        protected void OnSamplesRecorded(int sequence, float[] buffer)
+        protected void OnSamplesAvailable(int sequence, float[] buffer)
         {
             for (var i = 0; i < buffer.Length; i++)
             {

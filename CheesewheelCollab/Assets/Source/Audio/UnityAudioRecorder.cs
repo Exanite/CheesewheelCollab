@@ -57,7 +57,7 @@ namespace Source.Audio
 
         private void SendSamples()
         {
-            OnSamplesRecorded(sequence++, Buffer);
+            OnSamplesAvailable(sequence++, Buffer);
         }
     }
 }

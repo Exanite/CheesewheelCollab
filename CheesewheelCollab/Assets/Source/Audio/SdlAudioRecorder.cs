@@ -28,7 +28,7 @@ namespace Source.Audio
                     var streamData = new Span<float>((void*)stream, len / sizeof(float));
                     streamData.CopyTo(Buffer);
 
-                    OnSamplesRecorded(sequence++, Buffer);
+                    OnSamplesAvailable(sequence++, Buffer);
                 }
             };
 
