@@ -102,6 +102,8 @@ namespace Source.Audio
             SdlContext.Stop();
         }
 
+        // private int sineSequence;
+
         private unsafe void Update()
         {
             var queuedSamples = SDL.SDL_GetQueuedAudioSize(deviceId) / sizeof(float);
@@ -122,14 +124,23 @@ namespace Source.Audio
                     buffers[lastOutputSequence % buffers.Length].CopyTo(activeBuffer, 0);
                 }
 
+                // Sine wave output (sounds like an organ)
                 // for (var i = 0; i < activeBuffer.Length; i++)
                 // {
-                //     var time = (float)(lastOutputSequence * activeBuffer.Length + i) / AudioConstants.SampleRate;
+                //     var time = (float)(sineSequence * activeBuffer.Length + i) / AudioConstants.SampleRate;
                 //
-                //     activeBuffer[i] = Mathf.Sin(2 * Mathf.PI * 440 * time);
+                //     activeBuffer[i] += 0.025f * Mathf.Sin(Mathf.Sin(2 * Mathf.PI * 220 * time) + 2 * Mathf.PI * 220 * time);
+                //     activeBuffer[i] += 0.025f * Mathf.Sin(Mathf.Sin(2 * Mathf.PI * 440 * time) + 2 * Mathf.PI * 440 * time);
+                //     activeBuffer[i] += 0.025f * Mathf.Sin(Mathf.Sin(2 * Mathf.PI * 880 * time) + 2 * Mathf.PI * 880 * time);
+                //     activeBuffer[i] += 0.025f * Mathf.Sin(Mathf.Sin(2 * Mathf.PI * 1760 * time) + 2 * Mathf.PI * 1760 * time);
                 // }
-                // lastOutputSequence++;
+                // sineSequence++;
 
+                // Don't modify code below when processing audio
+                for (var i = 0; i < activeBuffer.Length; i++)
+                {
+                    activeBuffer[i] = Mathf.Clamp(activeBuffer[i], -1, 1);
+                }
                 fixed (float* activeBufferP = activeBuffer)
                 {
                     SDL.SDL_QueueAudio(deviceId, (IntPtr)activeBufferP, (uint)(activeBuffer.Length * sizeof(float)));
