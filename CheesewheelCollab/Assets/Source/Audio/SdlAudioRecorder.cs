@@ -2,31 +2,43 @@ using System;
 using System.Collections.Generic;
 using Exanite.Core.Utilities;
 using SDL2;
+using Source.Sdl;
 using UnityEngine;
 
 namespace Source.Audio
 {
-    public class SdlAudioRecorder : MonoBehaviour
+    public class SdlAudioRecorder : AudioRecorder
     {
-        private uint deviceId = 0;
+        private int sequence = 0;
+
+        // This callback is accessed by native C code
+        // Must save callback to field so it doesn't get GCed and cause a segfault
+        private SDL.SDL_AudioCallback audioCallback;
+        private SDL.SDL_AudioSpec spec;
+        private uint deviceId;
 
         private void Start()
         {
-            if (SDL.SDL_Init(SDL.SDL_INIT_AUDIO) != 0)
-            {
-                throw new Exception(SDL.SDL_GetError());
-            }
+            SdlContext.Start();
 
-            var requestedSpec = new SDL.SDL_AudioSpec
+            audioCallback = (userdata, stream, len) =>
             {
-                freq = 44100,
+                unsafe
+                {
+                    var streamData = new Span<float>((void*)stream, len / sizeof(float));
+                    streamData.CopyTo(Buffer);
+
+                    OnSamplesAvailable(sequence++, Buffer);
+                }
+            };
+
+            spec = new SDL.SDL_AudioSpec
+            {
+                freq = AudioConstants.SampleRate,
                 format = SDL.AUDIO_F32,
                 channels = 1,
-                samples = 250,
-                callback = (userdata, stream, len) =>
-                {
-                    "Test".Dump();
-                },
+                samples = AudioConstants.SamplesChunkSize,
+                callback = audioCallback,
             };
 
             var deviceNames = new List<string>();
@@ -43,13 +55,15 @@ namespace Source.Audio
                 throw new Exception(SDL.SDL_GetError());
             }
 
-            Debug.Log($"Default recording devices: {defaultDeviceName}");
+            Debug.Log($"Using default recording device: {defaultDeviceName}");
 
-            deviceId = SDL.SDL_OpenAudioDevice(defaultDeviceName, 1, ref requestedSpec, out var actualSpec, 0);
+            deviceId = SDL.SDL_OpenAudioDevice(defaultDeviceName, 1, ref spec, out var actualSpec, 0);
             if (deviceId == 0)
             {
                 throw new Exception(SDL.SDL_GetError());
             }
+
+            spec = actualSpec;
 
             SDL.SDL_PauseAudioDevice(deviceId, 0);
         }
@@ -61,6 +75,8 @@ namespace Source.Audio
                 SDL.SDL_CloseAudioDevice(deviceId);
                 deviceId = 0;
             }
+
+            SdlContext.Stop();
         }
     }
 }

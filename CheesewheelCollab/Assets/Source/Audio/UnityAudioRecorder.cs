@@ -2,21 +2,16 @@ using UnityEngine;
 
 namespace Source.Audio
 {
-    public class UnityAudioRecorder : MonoBehaviour
+    public class UnityAudioRecorder : AudioRecorder
     {
         private AudioClip recording;
         private int lastPosition = 0;
-        private int lastSequence = 0;
-
-        public readonly int SampleRate = AudioConstants.RecordingSampleRate;
-        public readonly float[] Buffer = new float[AudioConstants.AudioPacketSamplesSize];
-
-        public event SamplesRecordedCallback SamplesRecorded;
+        private int sequence = 0;
 
         private void OnEnable()
         {
             // Use default microphone, with a looping 10 second buffer at 10000 Hz
-            recording = Microphone.Start(null, true, 10, SampleRate);
+            recording = Microphone.Start(null, true, 10, AudioConstants.SampleRate);
         }
 
         private void Update()
@@ -62,7 +57,7 @@ namespace Source.Audio
 
         private void SendSamples()
         {
-            SamplesRecorded?.Invoke(lastSequence++, Buffer);
+            OnSamplesAvailable(sequence++, Buffer);
         }
     }
 }
