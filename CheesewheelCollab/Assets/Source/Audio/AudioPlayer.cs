@@ -52,7 +52,7 @@ namespace Source.Audio
                 buffers[i] = new float[AudioConstants.SamplesChunkSize];
             }
 
-            recorder.SamplesRecorded += OnSamplesRecorded;
+            recorder.SamplesAvailable += OnSamplesAvailable;
 
             SdlContext.Start();
 
@@ -124,7 +124,7 @@ namespace Source.Audio
                     buffers[lastOutputSequence % buffers.Length].CopyTo(activeBuffer, 0);
                 }
 
-                // Sine wave output (sounds like an organ)
+                // // Sine wave output (sounds like an organ)
                 // for (var i = 0; i < activeBuffer.Length; i++)
                 // {
                 //     var time = (float)(sineSequence * activeBuffer.Length + i) / AudioConstants.SampleRate;
@@ -149,7 +149,7 @@ namespace Source.Audio
             }
         }
 
-        private void OnSamplesRecorded(int sequence, float[] samples)
+        private void OnSamplesAvailable(int sequence, float[] samples)
         {
             // Assumes sequence is strictly increasing
             maxReceivedSequence = Mathf.Max(maxReceivedSequence, sequence);

@@ -11,14 +11,25 @@ namespace Source.Audio
         [SerializeField] private RawImage image;
 
         private Texture2D texture;
+        private float[] buffer;
+
+        private void Start()
+        {
+            recorder.SamplesAvailable += (_, samples) => buffer = samples;
+        }
 
         private void Update()
         {
-            if (!texture || texture.width != recorder.Buffer.Length)
+            if (buffer == null)
+            {
+                return;
+            }
+
+            if (!texture || texture.width != buffer.Length)
             {
                 Destroy(texture);
 
-                texture = new Texture2D(recorder.Buffer.Length, 100, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
+                texture = new Texture2D(buffer.Length, 100, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
                 texture.filterMode = FilterMode.Point;
 
                 image.texture = texture;
@@ -30,9 +41,9 @@ namespace Source.Audio
                 pixels[i] = Color.clear;
             }
 
-            for (var pixelX = 0; pixelX < recorder.Buffer.Length; pixelX++)
+            for (var pixelX = 0; pixelX < buffer.Length; pixelX++)
             {
-                var y = recorder.Buffer[pixelX];
+                var y = buffer[pixelX];
                 var pixelY = Mathf.Clamp((int)(texture.height * ((y + 1) / 2)), 0, texture.height - 1);
 
                 var index = pixelY * texture.width + pixelX;

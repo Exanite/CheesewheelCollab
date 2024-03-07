@@ -1,5 +1,7 @@
+using System;
 using System.Linq;
 using System.Numerics;
+using Exanite.Core.Utilities;
 using MathNet.Numerics.IntegralTransforms;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -16,18 +18,26 @@ namespace Source.Audio
         [SerializeField] private int maxFrequency = 20000;
 
         private Texture2D texture;
+        private float[] buffer;
 
         private void Start()
         {
-            texture = new Texture2D(500, 100, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
+            texture = new Texture2D(AudioConstants.SamplesChunkSize, 100, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
             texture.filterMode = FilterMode.Point;
 
             image.texture = texture;
+
+            recorder.SamplesAvailable += (_, samples) => buffer = samples;
         }
 
         private void Update()
         {
-            var fft = recorder.Buffer.Select(y => new Complex(y, 0)).ToArray();
+            if (buffer == null)
+            {
+                return;
+            }
+
+            var fft = buffer.Select(y => new Complex(y, 0)).ToArray();
             Fourier.Forward(fft, FourierOptions.Default);
 
             var pixels = texture.GetPixels();
@@ -36,15 +46,15 @@ namespace Source.Audio
                 pixels[i] = Color.clear;
             }
 
-            var frequencies = new float[texture.width];
+            var frequencies = new float[buffer.Length];
             var maxAmplitude = 1f;
-            for (var i = 0; i < frequencies.Length; i++)
+            for (var i = 0; i < buffer.Length; i++)
             {
-                frequencies[i] = GetFftAmplitude(fft, (float)i / recorder.Buffer.Length * (maxFrequency - minFrequency) + minFrequency);
+                frequencies[i] = GetFrequencyAmplitude(fft, MathUtility.Remap((float)i / buffer.Length, 0, 1, minFrequency, maxFrequency));
                 maxAmplitude = Mathf.Max(maxAmplitude, frequencies[i]);
             }
 
-            for (var pixelX = 0; pixelX < texture.width; pixelX++)
+            for (var pixelX = 0; pixelX < buffer.Length; pixelX++)
             {
                 var pixelY = Mathf.Clamp((int)(texture.height * (frequencies[pixelX] / maxAmplitude)), 0, texture.height - 1);
 
@@ -56,7 +66,7 @@ namespace Source.Audio
             texture.Apply();
         }
 
-        private float GetFftAmplitude(Complex[] fft, float frequency)
+        private float GetFrequencyAmplitude(Complex[] fft, float frequency)
         {
             var index = Mathf.Clamp((int)(frequency * fft.Length / AudioConstants.SampleRate), 0, fft.Length - 1);
             return (float)fft[index].Magnitude;

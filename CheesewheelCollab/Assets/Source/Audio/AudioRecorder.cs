@@ -4,9 +4,12 @@ namespace Source.Audio
 {
     public abstract class AudioRecorder : MonoBehaviour
     {
-        public readonly float[] Buffer = new float[AudioConstants.SamplesChunkSize];
+        protected readonly float[] Buffer = new float[AudioConstants.SamplesChunkSize];
 
-        public event SamplesAvailableCallback SamplesRecorded;
+        /// <remarks>
+        /// This might be called from a non-main thread.
+        /// </remarks>
+        public event SamplesAvailableCallback SamplesAvailable;
 
         protected void OnSamplesAvailable(int sequence, float[] buffer)
         {
@@ -15,7 +18,7 @@ namespace Source.Audio
                 buffer[i] = Mathf.Clamp(buffer[i], -1, 1);
             }
 
-            SamplesRecorded?.Invoke(sequence, buffer);
+            SamplesAvailable?.Invoke(sequence, buffer);
         }
     }
 }
