@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.UI;
@@ -32,7 +33,7 @@ namespace Source.Audio
             for (var pixelX = 0; pixelX < recorder.Buffer.Length; pixelX++)
             {
                 var y = recorder.Buffer[pixelX];
-                var pixelY = (int)(texture.height * ((y + 1) / 2));
+                var pixelY = Mathf.Clamp((int)(texture.height * ((y + 1) / 2)), 0, texture.height - 1);
 
                 var index = pixelY * texture.width + pixelX;
                 pixels[index] = Color.white;
