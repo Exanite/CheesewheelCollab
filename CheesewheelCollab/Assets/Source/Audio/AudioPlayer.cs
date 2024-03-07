@@ -30,7 +30,16 @@ namespace Source.Audio
 
         private SDL.SDL_AudioSpec spec;
         private uint deviceId;
-        private int sequence;
+
+        /// <summary>
+        /// Last sequence received from AudioRecorder / network
+        /// </summary>
+        private int lastReceivedSequence;
+
+        /// <summary>
+        /// Last sequence output to speakers
+        /// </summary>
+        private int lastOutputSequence;
 
         private void Start()
         {
@@ -100,24 +109,39 @@ namespace Source.Audio
 
             if (queuedSamples < targetQueuedSamples)
             {
-                for (var i = 0; i < activeBuffer.Length; i++)
+                // Stay at most 10 sequences behind
+                if (lastReceivedSequence - lastOutputSequence > 10)
                 {
-                    var time = (float)(sequence * activeBuffer.Length + i) / AudioConstants.SampleRate;
-
-                    activeBuffer[i] = Mathf.Sin(2 * Mathf.PI * 440 * time);
+                    lastOutputSequence = lastReceivedSequence - 5;
                 }
 
-                sequence++;
+                // Stay at least 5 sequences behind
+                if (lastOutputSequence + 5 < lastReceivedSequence)
+                {
+                    lastOutputSequence++;
+                    buffers[lastOutputSequence % buffers.Length].CopyTo(activeBuffer, 0);
+                }
+
+                // for (var i = 0; i < activeBuffer.Length; i++)
+                // {
+                //     var time = (float)(lastOutputSequence * activeBuffer.Length + i) / AudioConstants.SampleRate;
+                //
+                //     activeBuffer[i] = Mathf.Sin(2 * Mathf.PI * 440 * time);
+                // }
+                // lastOutputSequence++;
 
                 fixed (float* activeBufferP = activeBuffer)
                 {
                     SDL.SDL_QueueAudio(deviceId, (IntPtr)activeBufferP, (uint)(activeBuffer.Length * sizeof(float)));
                 }
+                activeBuffer.AsSpan().Clear();
             }
         }
 
         private void OnSamplesRecorded(int sequence, float[] samples)
         {
+            // Assumes sequence is strictly increasing
+            lastReceivedSequence = Mathf.Max(lastReceivedSequence, sequence);
             samples.CopyTo(buffers[sequence % buffers.Length], 0);
         }
 
