@@ -54,7 +54,7 @@ namespace Source.Networking
 
             coreNetwork.StartConnection().Forget(e =>
             {
-                mainMenuScene.Load(gameObject.scene, false);
+                mainMenuScene.Load(false);
             });
         }
 
@@ -126,7 +126,7 @@ namespace Source.Networking
 
             if (network.IsClient)
             {
-                mainMenuScene.Load(gameObject.scene, false);
+                mainMenuScene.Load(false);
             }
         }
 

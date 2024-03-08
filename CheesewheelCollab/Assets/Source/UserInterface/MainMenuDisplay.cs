@@ -38,8 +38,8 @@ namespace Source.UserInterface
             {
                 ParseFields();
 
-                clientScene.Load(gameObject.scene);
-                serverScene.Load(gameObject.scene);
+                clientScene.Load();
+                serverScene.Load();
                 sceneLoadManager.UnloadScene(gameObject.scene).Forget();
             });
 
@@ -47,7 +47,7 @@ namespace Source.UserInterface
             {
                 ParseFields();
 
-                clientScene.Load(gameObject.scene);
+                clientScene.Load();
                 sceneLoadManager.UnloadScene(gameObject.scene).Forget();
             });
         }
