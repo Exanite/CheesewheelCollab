@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/Exanite/Exanite.SceneManagement.git
 	branch = main
-	commit = e7da5a46ca3da43f51db7ecb7e42c4cfb642f55f
-	parent = a0e8c50c7c6bd8a47bc6fd7f18ca5f939ad622f5
+	commit = 6cecbe28069a6ade1b4df53832920ae36c349128
+	parent = a483fa758290a49a7560e1eae68bb438c6a1b78b
 	method = merge
 	cmdver = 0.4.3
