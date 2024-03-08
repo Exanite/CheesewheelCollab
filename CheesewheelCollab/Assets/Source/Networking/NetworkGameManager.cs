@@ -3,6 +3,7 @@ using Cysharp.Threading.Tasks;
 using Exanite.Core.Utilities;
 using Exanite.Networking;
 using Exanite.Networking.Channels;
+using Exanite.SceneManagement;
 using LiteNetLib.Utils;
 using Source.Audio;
 using UniDi;
@@ -16,6 +17,7 @@ namespace Source.Networking
         [Header("Dependencies")]
         [SerializeField] private GameObject playerPrefab;
         [SerializeField] private GameObject localPlayerPrefab;
+        [SerializeField] private SceneIdentifier mainMenuScene;
 
         [Inject] private IEnumerable<IPacketHandler> packetHandlers;
         [Inject] private Network coreNetwork;
@@ -50,7 +52,10 @@ namespace Source.Networking
                 clientData = new ClientData();
             }
 
-            coreNetwork.StartConnection().Forget();
+            coreNetwork.StartConnection().Forget(e =>
+            {
+                mainMenuScene.Load(gameObject.scene, false);
+            });
         }
 
         private void FixedUpdate()
@@ -117,6 +122,11 @@ namespace Source.Networking
                 {
                     playerLeavePacketChannel.SendNoWrite(networkConnection);
                 }
+            }
+
+            if (network.IsClient)
+            {
+                mainMenuScene.Load(gameObject.scene, false);
             }
         }
 

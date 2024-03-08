@@ -27,9 +27,6 @@ namespace Source.UserInterface
         [Inject] private LocalPlayerSettings playerSettings;
 
         [Inject] private SceneLoadManager sceneLoadManager;
-        [Inject] private SceneLoader sceneLoader;
-        [Inject] private DiContainer container;
-        [Inject] private Scene scene;
 
         private void Start()
         {
@@ -41,17 +38,17 @@ namespace Source.UserInterface
             {
                 ParseFields();
 
-                clientScene.Load(sceneLoader, container);
-                serverScene.Load(sceneLoader, container);
-                sceneLoadManager.UnloadScene(scene).Forget();
+                clientScene.Load(gameObject.scene);
+                serverScene.Load(gameObject.scene);
+                sceneLoadManager.UnloadScene(gameObject.scene).Forget();
             });
 
             connectButton.onClick.AddListener(() =>
             {
                 ParseFields();
 
-                clientScene.Load(sceneLoader, container);
-                sceneLoadManager.UnloadScene(scene).Forget();
+                clientScene.Load(gameObject.scene);
+                sceneLoadManager.UnloadScene(gameObject.scene).Forget();
             });
         }
 

@@ -46,3 +46,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerPrefab: {fileID: 8157500971742464581, guid: 74632881762b63d498dfba37eeb5b7bd, type: 3}
   localPlayerPrefab: {fileID: 4693499474009405174, guid: 47ad692fe41fb9443a7c7d2eaf224203, type: 3}
+  mainMenuScene: {fileID: 11400000, guid: 574c0ef2d169b6a43b211072fbd837ff, type: 2}
