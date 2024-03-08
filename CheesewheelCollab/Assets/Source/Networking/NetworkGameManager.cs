@@ -23,10 +23,6 @@ namespace Source.Networking
         [Inject] private Network coreNetwork;
         [Inject] private IChanneledNetwork network;
 
-        [Inject] private SceneLoader sceneLoader;
-        [Inject] private DiContainer container;
-        [Inject] private SceneLoadManager sceneLoadManager;
-
         private ClientData clientData;
 
         private Dictionary<int, Player> players = new();
@@ -127,7 +123,7 @@ namespace Source.Networking
 
             if (network.IsClient)
             {
-                mainMenuScene.Load(sceneLoader, container, false);
+                mainMenuScene.Load(gameObject.scene, false);
             }
         }
 
