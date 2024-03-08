@@ -106,7 +106,7 @@ namespace Source.Audio
         {
             //HRTF measured at 25 azimuth points (1st dim), 50 elevation points (2nd dim),
             //  all at 5 degrees offset from the next point
-            string path = Application.dataPath + "/Content/HRTFs/hrir58.mat";
+            string path = Application.streamingAssetsPath + "/HRTFs/hrir58.mat";
 
             MatFileReader mfr = new MatFileReader(path);
 
