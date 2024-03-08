@@ -8,6 +8,7 @@ using LiteNetLib.Utils;
 using Source.Audio;
 using UniDi;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Network = Exanite.Networking.Network;
 
 namespace Source.Networking
@@ -54,7 +55,7 @@ namespace Source.Networking
 
             coreNetwork.StartConnection().Forget(e =>
             {
-                mainMenuScene.Load(false);
+                mainMenuScene.Load(LoadSceneMode.Additive);
             });
         }
 
@@ -126,7 +127,7 @@ namespace Source.Networking
 
             if (network.IsClient)
             {
-                mainMenuScene.Load(false);
+                mainMenuScene.Load(LoadSceneMode.Additive);
             }
         }
 
