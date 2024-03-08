@@ -270,9 +270,10 @@ GameObject:
   m_Component:
   - component: {fileID: 456457244}
   - component: {fileID: 456457243}
+  - component: {fileID: 456457246}
   - component: {fileID: 456457245}
   m_Layer: 0
-  m_Name: NetworkingSettings
+  m_Name: Settings
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -322,10 +323,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _components:
   - {fileID: 456457243}
+  - {fileID: 456457246}
   _identifier: 
   _useSceneContext: 0
   _context: {fileID: 0}
   _bindType: 0
+--- !u!114 &456457246
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 456457242}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 08593ce0dc194e49bad093d8fae39d21, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerName: Player
 --- !u!1 &1307557425
 GameObject:
   m_ObjectHideFlags: 0
