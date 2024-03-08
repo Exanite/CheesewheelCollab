@@ -52,7 +52,10 @@ namespace Source.Networking
                 clientData = new ClientData();
             }
 
-            coreNetwork.StartConnection().Forget();
+            coreNetwork.StartConnection().Forget(e =>
+            {
+                mainMenuScene.Load(gameObject.scene, false);
+            });
         }
 
         private void FixedUpdate()
