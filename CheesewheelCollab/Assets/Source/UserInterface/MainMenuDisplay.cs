@@ -26,7 +26,7 @@ namespace Source.UserInterface
         [Inject] private LnlTransportSettings transportSettings;
         [Inject] private LocalPlayerSettings playerSettings;
 
-        [Inject] private SceneLoadManager sceneLoadManager;
+        [Inject] private SceneLoader sceneLoader;
 
         private void Start()
         {
@@ -40,7 +40,7 @@ namespace Source.UserInterface
 
                 clientScene.Load();
                 serverScene.Load();
-                sceneLoadManager.UnloadScene(gameObject.scene).Forget();
+                sceneLoader.UnloadScene(gameObject.scene).Forget();
             });
 
             connectButton.onClick.AddListener(() =>
@@ -48,7 +48,7 @@ namespace Source.UserInterface
                 ParseFields();
 
                 clientScene.Load();
-                sceneLoadManager.UnloadScene(gameObject.scene).Forget();
+                sceneLoader.UnloadScene(gameObject.scene).Forget();
             });
         }
 
