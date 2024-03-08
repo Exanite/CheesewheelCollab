@@ -8,7 +8,6 @@ using LiteNetLib.Utils;
 using Source.Audio;
 using UniDi;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using Network = Exanite.Networking.Network;
 
 namespace Source.Networking
@@ -24,8 +23,9 @@ namespace Source.Networking
         [Inject] private Network coreNetwork;
         [Inject] private IChanneledNetwork network;
 
+        [Inject] private SceneLoader sceneLoader;
+        [Inject] private DiContainer container;
         [Inject] private SceneLoadManager sceneLoadManager;
-        [Inject] private Scene scene;
 
         private ClientData clientData;
 
@@ -123,6 +123,11 @@ namespace Source.Networking
                 {
                     playerLeavePacketChannel.SendNoWrite(networkConnection);
                 }
+            }
+
+            if (network.IsClient)
+            {
+                mainMenuScene.Load(sceneLoader, container, false);
             }
         }
 
