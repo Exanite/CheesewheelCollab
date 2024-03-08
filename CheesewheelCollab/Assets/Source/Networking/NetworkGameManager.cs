@@ -3,10 +3,12 @@ using Cysharp.Threading.Tasks;
 using Exanite.Core.Utilities;
 using Exanite.Networking;
 using Exanite.Networking.Channels;
+using Exanite.SceneManagement;
 using LiteNetLib.Utils;
 using Source.Audio;
 using UniDi;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Network = Exanite.Networking.Network;
 
 namespace Source.Networking
@@ -16,10 +18,14 @@ namespace Source.Networking
         [Header("Dependencies")]
         [SerializeField] private GameObject playerPrefab;
         [SerializeField] private GameObject localPlayerPrefab;
+        [SerializeField] private SceneIdentifier mainMenuScene;
 
         [Inject] private IEnumerable<IPacketHandler> packetHandlers;
         [Inject] private Network coreNetwork;
         [Inject] private IChanneledNetwork network;
+
+        [Inject] private SceneLoadManager sceneLoadManager;
+        [Inject] private Scene scene;
 
         private ClientData clientData;
 
