@@ -2,8 +2,6 @@
 using System.IO;
 using System.Reflection;
 using System.Threading;
-using CSCore.Codecs.WAV;
-using CSCore.SoundOut;
 
 namespace CSCore
 {
@@ -191,53 +189,6 @@ namespace CSCore
         }
 
         /// <summary>
-        /// Creates a new file, writes all audio data of the <paramref name="source" /> to the file, and then closes the file. If the target file already exists, it is overwritten.
-        /// </summary>
-        /// <param name="source">Source which provides the audio data to write to the file.</param>
-        /// <param name="filename">The file to write to.</param>
-        /// <exception cref="System.ArgumentNullException">source</exception>
-        public static void WriteToFile(this IWaveSource source, string filename)
-        {
-            if (source == null)
-                throw new ArgumentNullException("source");
-            using (FileStream stream = File.OpenWrite(filename))
-            {
-                WriteToWaveStream(source, stream);
-            }
-        }
-
-        /// <summary>
-        /// Writes all audio data of the <paramref name="source" /> to a wavestream (including a wav header).
-        /// </summary>
-        /// <param name="source">Source which provides the audio data to write to the <paramref name="stream" />.</param>
-        /// <param name="stream"><see cref="Stream" /> to store the audio data in.</param>
-        /// <exception cref="System.ArgumentNullException">
-        /// source
-        /// or
-        /// stream
-        /// </exception>
-        /// <exception cref="System.ArgumentException">Stream is not writeable.;stream</exception>
-        public static void WriteToWaveStream(this IWaveSource source, Stream stream)
-        {
-            if (source == null)
-                throw new ArgumentNullException("source");
-            if (stream == null)
-                throw new ArgumentNullException("stream");
-            if (!stream.CanWrite)
-                throw new ArgumentException("Stream is not writeable.", "stream");
-
-            using (var writer = new WaveWriter(stream, source.WaveFormat))
-            {
-                int read;
-                var buffer = new byte[source.WaveFormat.BytesPerSecond];
-                while ((read = source.Read(buffer, 0, buffer.Length)) > 0)
-                {
-                    writer.Write(buffer, 0, read);
-                }
-            }
-        }
-
-        /// <summary>
         /// Writes all audio data of the <paramref name="waveSource"/> to a stream. In comparison to the <see cref="WriteToWaveStream"/> method, 
         /// the <see cref="WriteToStream"/> method won't encode the provided audio to any particular format. No wav, aiff,... header won't be included.
         /// </summary>
@@ -399,42 +350,6 @@ namespace CSCore
                 return AudioSubTypes.EncodingFromSubType(((WaveFormatExtensible) waveFormat).SubFormat);
 
             return waveFormat.WaveFormatTag;
-        }
-
-        /// <summary>
-        ///     Blocks the current thread until the playback of the specified <paramref name="soundOut"/> instance stops or the specified timeout expires. 
-        /// </summary>
-        /// <param name="soundOut">The <see cref="ISoundOut"/> instance to wait for its playback to stop.</param>
-        /// <param name="millisecondsTimeout">The number of milliseconds to wait. Pass <see cref="Timeout.Infinite"/> to wait indefinitely.</param>
-        /// <returns><c>true</c> if the <paramref name="soundOut"/> got stopped; <c>false</c> if the specified <paramref name="millisecondsTimeout"/> expired.</returns>
-        public static bool WaitForStopped(this ISoundOut soundOut, int millisecondsTimeout)
-        {
-            if (soundOut == null)
-                throw new ArgumentNullException("soundOut");
-            if (millisecondsTimeout < -1)
-                throw new ArgumentOutOfRangeException("millisecondsTimeout");
-
-            if (soundOut.PlaybackState == PlaybackState.Stopped)
-                return true;
-
-            using (var waitHandle = new AutoResetEvent(false))
-            {
-                EventHandler<PlaybackStoppedEventArgs> handler = (s, e) => waitHandle.Set();
-                soundOut.Stopped += handler;
-                bool result = waitHandle.WaitOne(millisecondsTimeout);
-                // need to unsubscrive because waitHandle will be disposed
-                soundOut.Stopped -= handler;
-                return result;
-            }
-        }
-
-        /// <summary>
-        ///     Blocks the current thread until the playback of the specified <paramref name="soundOut"/> instance stops. 
-        /// </summary>
-        /// <param name="soundOut">The <see cref="ISoundOut"/> instance to wait for its playback to stop.</param>
-        public static void WaitForStopped(this ISoundOut soundOut)
-        {
-            WaitForStopped(soundOut, Timeout.Infinite);
         }
 
         //copied from http://stackoverflow.com/questions/9927590/can-i-set-a-value-on-a-struct-through-reflection-without-boxing

@@ -1,6 +1,4 @@
-﻿using CSCore.Utils.Buffer;
-using System;
-using System.Diagnostics;
+﻿using System;
 
 namespace CSCore.Streams
 {

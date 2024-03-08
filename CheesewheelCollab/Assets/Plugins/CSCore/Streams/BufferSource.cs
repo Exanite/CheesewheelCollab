@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using CSCore.Utils.Buffer;
+﻿using CSCore.Utils.Buffer;
 using System;
 using System.Threading;
 

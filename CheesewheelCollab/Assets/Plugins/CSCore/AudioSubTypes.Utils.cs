@@ -1,6 +1,4 @@
 ﻿using System;
-using CSCore.DMO;
-using CSCore.MediaFoundation;
 
 namespace CSCore
 {

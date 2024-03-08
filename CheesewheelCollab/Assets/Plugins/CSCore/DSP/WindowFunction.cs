@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace CSCore.DSP
+﻿namespace CSCore.DSP
 {
     /// <summary>
     /// Encapsulates a window function.
