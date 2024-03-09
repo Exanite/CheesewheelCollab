@@ -73,39 +73,15 @@ namespace Source.Audio
                     lastOutputChunk++;
 
                     // Bad resampling algorithm
-                    // Super jank
-                    var recordingSamplesC = buffers[lastOutputChunk % buffers.Length];
-                    var recordingSamplesB = buffers[(lastOutputChunk - 1 + buffers.Length) % buffers.Length];
-                    var recordingSamplesA = buffers[(lastOutputChunk - 2 + buffers.Length) % buffers.Length];
+                    var recordingSamples = buffers[lastOutputChunk % buffers.Length];
                     for (var i = 0; i < activeBuffer.Length; i++)
                     {
                         var recordingSamplesI = MathUtility.Remap(i, 0, activeBuffer.Length - 1, 0, AudioConstants.SamplesChunkSize - 1);
-                        var y = 0f;
-                        var sampleCount = AudioConstants.PlaybackSampleRate / AudioConstants.RecordingSampleRate + 1;
+                        var leftSample = recordingSamples[Mathf.FloorToInt(recordingSamplesI)];
+                        var rightSample = recordingSamples[Mathf.CeilToInt(recordingSamplesI)];
+                        var interpolated = Mathf.Lerp(leftSample, rightSample, recordingSamplesI % 1);
 
-                        for (var j = 0; j < sampleCount; j++)
-                        {
-                            var sampleIndex = recordingSamplesI + j - 2;
-                            var recordingSamples = recordingSamplesB;
-
-                            if (sampleIndex < 0)
-                            {
-                                sampleIndex += AudioConstants.SamplesChunkSize;
-                                recordingSamples = recordingSamplesC;
-                            }
-
-                            if (sampleIndex >= AudioConstants.SamplesChunkSize)
-                            {
-                                sampleIndex -= AudioConstants.SamplesChunkSize;
-                                recordingSamples = recordingSamplesA;
-                            }
-
-                            y += recordingSamples[(int)sampleIndex];
-                        }
-
-                        y /= sampleCount;
-
-                        activeBuffer[i] = y;
+                        activeBuffer[i] = interpolated;
                     }
                 }
 
