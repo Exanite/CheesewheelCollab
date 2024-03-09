@@ -1,4 +1,4 @@
-namespace Source.Networking
+namespace Source.Networking.Internal
 {
     public static class PacketHandlerIds
     {

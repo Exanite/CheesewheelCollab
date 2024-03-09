@@ -2,7 +2,7 @@ using Exanite.Networking;
 using Exanite.Networking.Channels;
 using UniDi;
 
-namespace Source.Networking
+namespace Source.Networking.Internal
 {
     public class ChanneledNetworkInstaller : MonoInstaller
     {

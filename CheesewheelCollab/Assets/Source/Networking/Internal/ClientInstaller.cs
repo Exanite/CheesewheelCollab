@@ -4,7 +4,7 @@ using UniDi;
 using UnityEngine;
 using Network = Exanite.Networking.Network;
 
-namespace Source.Networking
+namespace Source.Networking.Internal
 {
     public class ClientInstaller : MonoInstaller
     {
