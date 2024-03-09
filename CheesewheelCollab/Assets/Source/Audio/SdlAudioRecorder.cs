@@ -34,7 +34,7 @@ namespace Source.Audio
 
             spec = new SDL.SDL_AudioSpec
             {
-                freq = AudioConstants.SampleRate,
+                freq = AudioConstants.RecordingSampleRate,
                 format = SDL.AUDIO_F32,
                 channels = 1,
                 samples = AudioConstants.SamplesChunkSize,

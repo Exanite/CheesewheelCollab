@@ -11,7 +11,7 @@ namespace Source.Audio
         private void OnEnable()
         {
             // Use default microphone, with a looping 10 second buffer at 10000 Hz
-            recording = Microphone.Start(null, true, 10, AudioConstants.SampleRate);
+            recording = Microphone.Start(null, true, 10, AudioConstants.RecordingSampleRate);
         }
 
         private void Update()

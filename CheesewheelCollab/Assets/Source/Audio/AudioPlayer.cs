@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using csmatio.types;
 using csmatio.io;
+using Exanite.Core.Utilities;
 
 namespace Source.Audio
 {
@@ -38,7 +39,7 @@ namespace Source.Audio
         {
             LoadHRTF();
 
-            activeBuffer = new float[AudioConstants.SamplesChunkSize];
+            activeBuffer = new float[AudioConstants.SamplesChunkSize * (AudioConstants.PlaybackSampleRate / AudioConstants.RecordingSampleRate)];
             buffers = new float[256][];
             for (var i = 0; i < buffers.Length; i++)
             {
@@ -47,7 +48,7 @@ namespace Source.Audio
 
             recorder.SamplesAvailable += OnSamplesAvailable;
 
-            output = new AudioOutput(AudioConstants.SampleRate, 1);
+            output = new AudioOutput(AudioConstants.PlaybackSampleRate, 1);
         }
 
         private void OnDestroy()
@@ -70,7 +71,12 @@ namespace Source.Audio
                 if (maxReceivedChunk - lastOutputChunk > minChunksBuffered)
                 {
                     lastOutputChunk++;
-                    buffers[lastOutputChunk % buffers.Length].CopyTo(activeBuffer, 0);
+
+                    var samples = buffers[lastOutputChunk % buffers.Length];
+                    for (var i = 0; i < activeBuffer.Length; i++)
+                    {
+                        activeBuffer[i] = samples[(int)MathUtility.Remap(i, 0, activeBuffer.Length - 1, 0, samples.Length - 1)];
+                    }
                 }
 
                 // // Sine wave output (sounds like an organ)
