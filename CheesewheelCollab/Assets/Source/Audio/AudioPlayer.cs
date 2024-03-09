@@ -2,7 +2,8 @@ using System;
 using UnityEngine;
 using csmatio.types;
 using csmatio.io;
-using Exanite.Core.Utilities;
+using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
 
 namespace Source.Audio
 {
@@ -39,7 +40,7 @@ namespace Source.Audio
         {
             LoadHRTF();
 
-            activeBuffer = new float[AudioConstants.SamplesChunkSize * (AudioConstants.PlaybackSampleRate / AudioConstants.RecordingSampleRate)];
+            activeBuffer = new float[(int)(AudioConstants.SamplesChunkSize * ((float)AudioConstants.PlaybackSampleRate / AudioConstants.RecordingSampleRate))];
             buffers = new float[256][];
             for (var i = 0; i < buffers.Length; i++)
             {
@@ -72,11 +73,11 @@ namespace Source.Audio
                 {
                     lastOutputChunk++;
 
-                    var samples = buffers[lastOutputChunk % buffers.Length];
-                    for (var i = 0; i < activeBuffer.Length; i++)
-                    {
-                        activeBuffer[i] = samples[(int)MathUtility.Remap(i, 0, activeBuffer.Length - 1, 0, samples.Length - 1)];
-                    }
+                    var samples = new SampleProvider();
+                    samples.CurrentBuffer = buffers[lastOutputChunk % buffers.Length];
+                    var resampler = new WdlResamplingSampleProvider(samples, AudioConstants.PlaybackSampleRate);
+
+                    resampler.Read(activeBuffer, 0, activeBuffer.Length);
                 }
 
                 // // Sine wave output (sounds like an organ)
@@ -125,6 +126,21 @@ namespace Source.Audio
             Debug.Log(mfr.Data[1].ContentToString() + "\n");
             double[][] mld = ((MLDouble)mfr.Data[1]).GetArray();
             Debug.Log(mld[0][0]);
+        }
+
+        private class SampleProvider : ISampleProvider
+        {
+            public WaveFormat WaveFormat { get; } = WaveFormat.CreateIeeeFloatWaveFormat(AudioConstants.RecordingSampleRate, 1);
+
+            public float[] CurrentBuffer { get; set; }
+
+            public int Read(float[] buffer, int offset, int count)
+            {
+                var lengthRead = Math.Min(count, CurrentBuffer.Length);
+                CurrentBuffer.AsSpan().Slice(0, lengthRead).CopyTo(buffer);
+
+                return lengthRead;
+            }
         }
     }
 }
