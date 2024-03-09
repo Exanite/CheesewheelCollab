@@ -73,13 +73,21 @@ namespace Source.Audio
                     lastOutputChunk++;
 
                     // Bad resampling algorithm
-                    var recordingSamples = buffers[lastOutputChunk % buffers.Length];
+                    var recordingSamples0 = buffers[lastOutputChunk % buffers.Length];
+                    var recordingSamples1 = buffers[(lastOutputChunk - 1 + buffers.Length) % buffers.Length];
+                    var recordingSamples2 = buffers[(lastOutputChunk - 1 + buffers.Length) % buffers.Length];
                     for (var i = 0; i < activeBuffer.Length; i++)
                     {
                         var recordingSamplesI = MathUtility.Remap(i, 0, activeBuffer.Length - 1, 0, AudioConstants.SamplesChunkSize - 1);
-                        var leftSample = recordingSamples[Mathf.FloorToInt(recordingSamplesI)];
-                        var rightSample = recordingSamples[Mathf.CeilToInt(recordingSamplesI)];
-                        var interpolated = Mathf.Lerp(leftSample, rightSample, recordingSamplesI % 1);
+
+                        var sample0 = Mathf.FloorToInt(recordingSamplesI) - 1;
+
+                        var y0 = sample0 + 0 < 0 ? recordingSamples2[sample0 + 0 + AudioConstants.SamplesChunkSize] : recordingSamples1[sample0 + 0];
+                        var y1 = sample0 + 1 < 0 ? recordingSamples2[sample0 + 1 + AudioConstants.SamplesChunkSize] : recordingSamples1[sample0 + 1];
+                        var y2 = sample0 + 2 >= AudioConstants.SamplesChunkSize ? recordingSamples2[sample0 + 2 - AudioConstants.SamplesChunkSize] : recordingSamples1[sample0 + 2];
+                        var y3 = sample0 + 3 >= AudioConstants.SamplesChunkSize ? recordingSamples0[sample0 + 3 - AudioConstants.SamplesChunkSize] : recordingSamples1[sample0 + 3];
+
+                        var interpolated = CubicInterpolate(y0, y1, y2, y3, recordingSamplesI % 1);
 
                         activeBuffer[i] = interpolated;
                     }
@@ -131,6 +139,22 @@ namespace Source.Audio
             Debug.Log(mfr.Data[1].ContentToString() + "\n");
             double[][] mld = ((MLDouble)mfr.Data[1]).GetArray();
             Debug.Log(mld[0][0]);
+        }
+
+        private float CubicInterpolate(
+            float y0,
+            float y1,
+            float y2,
+            float y3,
+            float mu)
+        {
+            var mu2 = mu * mu;
+            var a0 = y3 - y2 - y0 + y1;
+            var a1 = y0 - y1 - a0;
+            var a2 = y2 - y0;
+            var a3 = y1;
+
+            return a0 * mu * mu2 + a1 * mu2 + a2 * mu + a3;
         }
     }
 }
