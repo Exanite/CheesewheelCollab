@@ -2,8 +2,7 @@ using System;
 using UnityEngine;
 using csmatio.types;
 using csmatio.io;
-using NAudio.Wave;
-using NAudio.Wave.SampleProviders;
+using Exanite.Core.Utilities;
 
 namespace Source.Audio
 {
@@ -73,11 +72,41 @@ namespace Source.Audio
                 {
                     lastOutputChunk++;
 
-                    var samples = new SampleProvider();
-                    samples.CurrentBuffer = buffers[lastOutputChunk % buffers.Length];
-                    var resampler = new WdlResamplingSampleProvider(samples, AudioConstants.PlaybackSampleRate);
+                    // Bad resampling algorithm
+                    // Super jank
+                    var recordingSamplesC = buffers[lastOutputChunk % buffers.Length];
+                    var recordingSamplesB = buffers[(lastOutputChunk - 1 + buffers.Length) % buffers.Length];
+                    var recordingSamplesA = buffers[(lastOutputChunk - 2 + buffers.Length) % buffers.Length];
+                    for (var i = 0; i < activeBuffer.Length; i++)
+                    {
+                        var recordingSamplesI = MathUtility.Remap(i, 0, activeBuffer.Length - 1, 0, AudioConstants.SamplesChunkSize - 1);
+                        var y = 0f;
+                        var sampleCount = AudioConstants.PlaybackSampleRate / AudioConstants.RecordingSampleRate + 1;
 
-                    resampler.Read(activeBuffer, 0, activeBuffer.Length);
+                        for (var j = 0; j < sampleCount; j++)
+                        {
+                            var sampleIndex = recordingSamplesI + j - 2;
+                            var recordingSamples = recordingSamplesB;
+
+                            if (sampleIndex < 0)
+                            {
+                                sampleIndex += AudioConstants.SamplesChunkSize;
+                                recordingSamples = recordingSamplesC;
+                            }
+
+                            if (sampleIndex >= AudioConstants.SamplesChunkSize)
+                            {
+                                sampleIndex -= AudioConstants.SamplesChunkSize;
+                                recordingSamples = recordingSamplesA;
+                            }
+
+                            y += recordingSamples[(int)sampleIndex];
+                        }
+
+                        y /= sampleCount;
+
+                        activeBuffer[i] = y;
+                    }
                 }
 
                 // // Sine wave output (sounds like an organ)
@@ -126,21 +155,6 @@ namespace Source.Audio
             Debug.Log(mfr.Data[1].ContentToString() + "\n");
             double[][] mld = ((MLDouble)mfr.Data[1]).GetArray();
             Debug.Log(mld[0][0]);
-        }
-
-        private class SampleProvider : ISampleProvider
-        {
-            public WaveFormat WaveFormat { get; } = WaveFormat.CreateIeeeFloatWaveFormat(AudioConstants.RecordingSampleRate, 1);
-
-            public float[] CurrentBuffer { get; set; }
-
-            public int Read(float[] buffer, int offset, int count)
-            {
-                var lengthRead = Math.Min(count, CurrentBuffer.Length);
-                CurrentBuffer.AsSpan().Slice(0, lengthRead).CopyTo(buffer);
-
-                return lengthRead;
-            }
         }
     }
 }
