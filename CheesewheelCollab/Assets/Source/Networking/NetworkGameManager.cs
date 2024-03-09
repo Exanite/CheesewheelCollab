@@ -1,11 +1,8 @@
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-using Exanite.Core.Utilities;
 using Exanite.Networking;
 using Exanite.Networking.Channels;
 using Exanite.SceneManagement;
-using LiteNetLib.Utils;
-using Source.Audio;
 using UniDi;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -194,104 +191,6 @@ namespace Source.Networking
         private void OnAudioPacket(NetworkConnection connection, AudioPacket message)
         {
             Debug.Log($"Received on {connection.Network.GetType().Name}: {message.Time} | Time diff: {Time.time - message.Time}");
-        }
-    }
-
-    public class AudioPacket : INetworkSerializable
-    {
-        /// <summary>
-        /// Time the packet was recorded on the client. Probably should use ticks or packet counter instead.
-        /// </summary>
-        public float Time;
-
-        // We'll probably send 500 samples with 2 bytes each (16 bit precision)
-        // Max UDP MTU is 1460-ish, but we'll send ~1000 to be safe
-        public readonly float[] Samples = new float[AudioConstants.SamplesChunkSize];
-
-        public void Serialize(NetDataWriter writer)
-        {
-            writer.Put(Time);
-            for (var i = 0; i < Samples.Length; i++)
-            {
-                writer.Put((short)MathUtility.Remap(Samples[i], -1, 1, short.MinValue, short.MaxValue));
-            }
-        }
-
-        public void Deserialize(NetDataReader reader)
-        {
-            Time = reader.GetFloat();
-            for (var i = 0; i < Samples.Length; i++)
-            {
-                Samples[i] = (short)MathUtility.Remap(reader.GetShort(), short.MinValue, short.MaxValue, -1, 1);
-            }
-        }
-    }
-
-    public class Player
-    {
-        public int Id;
-
-        public Vector2 Position;
-
-        /// <summary>
-        /// Null on server.
-        /// </summary>
-        public GameObject GameObject;
-    }
-
-    public class ClientData
-    {
-        public Player LocalPlayer;
-    }
-
-    public class PlayerJoinPacket : INetworkSerializable
-    {
-        public int PlayerId;
-        public bool IsLocal;
-
-        public void Serialize(NetDataWriter writer)
-        {
-            writer.Put(PlayerId);
-            writer.Put(IsLocal);
-        }
-
-        public void Deserialize(NetDataReader reader)
-        {
-            PlayerId = reader.GetInt();
-            IsLocal = reader.GetBool();
-        }
-    }
-
-    public class PlayerLeavePacket : INetworkSerializable
-    {
-        public int PlayerId;
-
-        public void Serialize(NetDataWriter writer)
-        {
-            writer.Put(PlayerId);
-        }
-
-        public void Deserialize(NetDataReader reader)
-        {
-            PlayerId = reader.GetInt();
-        }
-    }
-
-    public class PlayerUpdatePacket : INetworkSerializable
-    {
-        public int PlayerId;
-        public Vector2 Position;
-
-        public void Serialize(NetDataWriter writer)
-        {
-            writer.Put(PlayerId);
-            writer.Put(Position);
-        }
-
-        public void Deserialize(NetDataReader reader)
-        {
-            PlayerId = reader.GetInt();
-            Position = reader.GetVector2();
         }
     }
 }
