@@ -70,7 +70,7 @@ namespace Source.Audio
                 if (maxReceivedChunk - lastOutputChunk > minChunksBuffered)
                 {
                     lastOutputChunk++;
-                    buffers[lastOutputChunk % buffers.Length].CopyTo(activeBuffer, 0);
+                    buffers[lastOutputChunk % buffers.Length].AsSpan().CopyTo(activeBuffer);
                 }
 
                 // // Sine wave output (sounds like an organ)
@@ -119,6 +119,16 @@ namespace Source.Audio
             Debug.Log(mfr.Data[1].ContentToString() + "\n");
             double[][] mld = ((MLDouble)mfr.Data[1]).GetArray();
             Debug.Log(mld[0][0]);
+        }
+
+        private float Sinc(float x)
+        {
+            return Mathf.Sin(x) / x;
+        }
+
+        private float NormalizedSinc(float x)
+        {
+            return Mathf.Sin(x * Mathf.PI) / x * Mathf.PI;
         }
     }
 }
