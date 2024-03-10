@@ -72,7 +72,7 @@ namespace Source.Networking
 
             coreNetwork.StartConnection().Forget(e =>
             {
-                mainMenuScene.Load(LoadSceneMode.Additive);
+                mainMenuScene.Load(LoadSceneMode.Single);
             });
         }
 
