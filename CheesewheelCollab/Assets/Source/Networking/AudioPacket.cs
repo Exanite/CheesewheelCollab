@@ -8,9 +8,14 @@ namespace Source.Networking
     public class AudioPacket : INetworkSerializable
     {
         /// <summary>
-        /// Time the packet was recorded on the client. Probably should use ticks or packet counter instead.
+        /// Order in which the audio chunk was recorded.
         /// </summary>
-        public float Time;
+        public int Chunk;
+
+        /// <summary>
+        /// Player that originally sent the packet.
+        /// </summary>
+        public int PlayerId;
 
         // We'll probably send 500 samples with 2 bytes each (16 bit precision)
         // Max UDP MTU is 1460-ish, but we'll send ~1000 to be safe
@@ -18,7 +23,8 @@ namespace Source.Networking
 
         public void Serialize(NetDataWriter writer)
         {
-            writer.Put(Time);
+            writer.Put(Chunk);
+            writer.Put(PlayerId);
             for (var i = 0; i < Samples.Length; i++)
             {
                 writer.Put((short)MathUtility.Remap(Samples[i], -1, 1, short.MinValue, short.MaxValue));
@@ -27,7 +33,8 @@ namespace Source.Networking
 
         public void Deserialize(NetDataReader reader)
         {
-            Time = reader.GetFloat();
+            Chunk = reader.GetInt();
+            PlayerId = reader.GetInt();
             for (var i = 0; i < Samples.Length; i++)
             {
                 Samples[i] = (short)MathUtility.Remap(reader.GetShort(), short.MinValue, short.MaxValue, -1, 1);

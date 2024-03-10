@@ -519,6 +519,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: NetworkGameManager
       objectReference: {fileID: 0}
+    - target: {fileID: 5769629615450017856, guid: 1c3f4a1e570c84442bba26b9c7859175, type: 3}
+      propertyPath: audioRecorder
+      value: 
+      objectReference: {fileID: 668876558602589985}
     - target: {fileID: 6437581932009978290, guid: 1c3f4a1e570c84442bba26b9c7859175, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -562,8 +566,28 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2690644353089015413, guid: 1c3f4a1e570c84442bba26b9c7859175, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 668876558602589985}
   m_SourcePrefab: {fileID: 100100000, guid: 1c3f4a1e570c84442bba26b9c7859175, type: 3}
+--- !u!1 &668876558602589984 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2690644353089015413, guid: 1c3f4a1e570c84442bba26b9c7859175, type: 3}
+  m_PrefabInstance: {fileID: 668876558602589983}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &668876558602589985
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 668876558602589984}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e573488700c46ed972f1b8af2542184, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &7711695695087616259
 PrefabInstance:
   m_ObjectHideFlags: 0

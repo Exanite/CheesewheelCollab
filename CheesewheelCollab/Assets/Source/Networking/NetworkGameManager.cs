@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Exanite.Networking;
 using Exanite.Networking.Channels;
 using Exanite.SceneManagement;
+using Source.Audio;
 using UniDi;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -16,6 +18,7 @@ namespace Source.Networking
         [SerializeField] private GameObject playerPrefab;
         [SerializeField] private GameObject localPlayerPrefab;
         [SerializeField] private SceneIdentifier mainMenuScene;
+        [SerializeField] private AudioRecorder audioRecorder;
 
         [Inject] private IEnumerable<IPacketHandler> packetHandlers;
         [Inject] private Network coreNetwork;
@@ -48,6 +51,18 @@ namespace Source.Networking
             if (network.IsClient)
             {
                 clientData = new ClientData();
+
+                audioRecorder.SamplesAvailable += (chunk, samples) =>
+                {
+                    audioPacketChannel.Message.Chunk = chunk;
+                    samples.AsSpan().CopyTo(audioPacketChannel.Message.Samples);
+
+                    audioPacketChannel.Write();
+                    foreach (var connection in network.Connections)
+                    {
+                        audioPacketChannel.SendNoWrite(connection);
+                    }
+                };
             }
 
             coreNetwork.StartConnection().Forget(e =>
@@ -60,17 +75,6 @@ namespace Source.Networking
         {
             if (network.IsClient && clientData.LocalPlayer != null)
             {
-                for (var i = 0; i < audioPacketChannel.Message.Samples.Length; i++)
-                {
-                    audioPacketChannel.Message.Time = Time.time;
-                }
-
-                audioPacketChannel.Write();
-                foreach (var connection in network.Connections)
-                {
-                    audioPacketChannel.SendNoWrite(connection);
-                }
-
                 playerUpdatePacketChannel.Message.Position = clientData.LocalPlayer.GameObject.transform.position;
                 playerUpdatePacketChannel.Write();
                 foreach (var connection in network.Connections)
@@ -190,7 +194,22 @@ namespace Source.Networking
 
         private void OnAudioPacket(NetworkConnection connection, AudioPacket message)
         {
-            Debug.Log($"Received on {connection.Network.GetType().Name}: {message.Time} | Time diff: {Time.time - message.Time}");
+            if (network.IsServer)
+            {
+                message.PlayerId = connection.Id;
+                audioPacketChannel.Write(message);
+                foreach (var other in network.Connections)
+                {
+                    if (connection == other)
+                    {
+                        continue;
+                    }
+
+                    audioPacketChannel.SendNoWrite(other);
+                }
+            }
+
+            Debug.Log($"Received audio from {message.PlayerId} (IsServer: {network.IsServer})");
         }
     }
 }
