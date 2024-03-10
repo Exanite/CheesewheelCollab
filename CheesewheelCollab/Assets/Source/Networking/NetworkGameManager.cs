@@ -100,6 +100,11 @@ namespace Source.Networking
                 {
                     foreach (var (_, player) in players)
                     {
+                        if (player == clientData.LocalPlayer)
+                        {
+                            continue;
+                        }
+
                         if (player.Audio.MaxReceivedChunk - player.Audio.LastOutputChunk > maxChunksBuffered)
                         {
                             player.Audio.LastOutputChunk = player.Audio.MaxReceivedChunk - maxChunksBuffered;
@@ -246,11 +251,10 @@ namespace Source.Networking
                 audioPacketChannel.Write(message);
                 foreach (var other in network.Connections)
                 {
-                    // // Todo Uncomment this
-                    // if (connection == other)
-                    // {
-                    //     continue;
-                    // }
+                    if (connection == other)
+                    {
+                        continue;
+                    }
 
                     audioPacketChannel.SendNoWrite(other);
                 }
