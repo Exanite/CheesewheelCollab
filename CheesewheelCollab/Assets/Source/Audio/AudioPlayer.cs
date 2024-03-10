@@ -120,15 +120,5 @@ namespace Source.Audio
             double[][] mld = ((MLDouble)mfr.Data[1]).GetArray();
             Debug.Log(mld[0][0]);
         }
-
-        private float Sinc(float x)
-        {
-            return Mathf.Sin(x) / x;
-        }
-
-        private float NormalizedSinc(float x)
-        {
-            return Mathf.Sin(x * Mathf.PI) / x * Mathf.PI;
-        }
     }
 }
