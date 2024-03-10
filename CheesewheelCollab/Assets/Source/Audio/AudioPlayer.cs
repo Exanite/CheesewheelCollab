@@ -76,7 +76,7 @@ namespace Source.Audio
                     // https://onlinelibrary.wiley.com/doi/pdf/10.1002/1361-6374%28199612%294%3A4%3C225%3A%3AAID-BIO1%3E3.0.CO%3B2-G
                     var recordingSamples0 = buffers[lastOutputChunk % buffers.Length];
                     var recordingSamples1 = buffers[(lastOutputChunk - 1 + buffers.Length) % buffers.Length];
-                    var recordingSamples2 = buffers[(lastOutputChunk - 1 + buffers.Length) % buffers.Length];
+                    var recordingSamples2 = buffers[(lastOutputChunk - 2 + buffers.Length) % buffers.Length];
                     for (var i = 0; i < activeBuffer.Length; i++)
                     {
                         var N = AudioConstants.SamplesChunkSize * 3;
