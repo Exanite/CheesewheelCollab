@@ -39,7 +39,7 @@ namespace Source.Audio
                 return;
             }
 
-            maxRenderableFrequency = AudioConstants.RecordingSampleRate / 2;
+            maxRenderableFrequency = AudioConstants.SampleRate / 2;
 
             var fft = buffer.Select(y => new Complex(y, 0)).ToArray();
             Fourier.Forward(fft, FourierOptions.Default);
@@ -72,7 +72,7 @@ namespace Source.Audio
 
         private float GetFrequencyAmplitude(Complex[] fft, float frequency)
         {
-            var index = Mathf.Clamp((int)(frequency * fft.Length / AudioConstants.RecordingSampleRate), 0, fft.Length - 1);
+            var index = Mathf.Clamp((int)(frequency * fft.Length / AudioConstants.SampleRate), 0, fft.Length - 1);
             return (float)fft[index].Magnitude;
         }
     }
