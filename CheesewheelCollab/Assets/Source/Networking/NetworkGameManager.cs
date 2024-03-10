@@ -133,7 +133,7 @@ namespace Source.Networking
 
             if (network.IsClient)
             {
-                mainMenuScene.Load(LoadSceneMode.Additive);
+                mainMenuScene.Load(LoadSceneMode.Single);
             }
         }
 
