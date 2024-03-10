@@ -37,7 +37,7 @@ namespace Source.Networking
             PlayerId = reader.GetInt();
             for (var i = 0; i < Samples.Length; i++)
             {
-                Samples[i] = (short)MathUtility.Remap(reader.GetShort(), short.MinValue, short.MaxValue, -1, 1);
+                Samples[i] = MathUtility.Remap(reader.GetShort(), short.MinValue, short.MaxValue, -1, 1);
             }
         }
     }
