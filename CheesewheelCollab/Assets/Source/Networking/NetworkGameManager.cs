@@ -76,6 +76,14 @@ namespace Source.Networking
             });
         }
 
+        private void OnDestroy()
+        {
+            if (network.IsClient)
+            {
+                clientData.Output.Dispose();
+            }
+        }
+
         private void FixedUpdate()
         {
             if (network.IsClient && clientData.LocalPlayer != null)
