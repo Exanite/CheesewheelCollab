@@ -16,9 +16,6 @@ namespace Source.Audio
         [SerializeField] private int maxChunksBuffered = 10;
         [SerializeField] private int minChunksQueued = 2;
 
-        // Currently 256 buffers * 500 samples per buffer / 10000 Hz = 12.8 seconds of buffers.
-        // Window must be <= 12.8 / 2, therefore we can have 6.4 seconds of buffering.
-        // This means we can have a max delay of 6.4 seconds. Our min delay is 0 seconds, but that can cause issues.
         private float[][] buffers;
         private float[] activeBuffer;
 

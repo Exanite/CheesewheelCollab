@@ -20,6 +20,11 @@ namespace Source.Networking
         [SerializeField] private SceneIdentifier mainMenuScene;
         [SerializeField] private AudioRecorder audioRecorder;
 
+        [Header("Audio")]
+        [SerializeField] private int minChunksBuffered = 5;
+        [SerializeField] private int maxChunksBuffered = 10;
+        [SerializeField] private int minChunksQueued = 2;
+
         [Inject] private IEnumerable<IPacketHandler> packetHandlers;
         [Inject] private Network coreNetwork;
         [Inject] private IChanneledNetwork network;
@@ -146,7 +151,9 @@ namespace Source.Networking
             {
                 Id = message.PlayerId,
                 GameObject = Instantiate(playerPrefabToInstantiate),
+                Audio = new Player.PlayerAudioData(),
             };
+
             players.Add(player.Id, player);
 
             if (message.IsLocal)
@@ -200,12 +207,22 @@ namespace Source.Networking
                 audioPacketChannel.Write(message);
                 foreach (var other in network.Connections)
                 {
-                    if (connection == other)
-                    {
-                        continue;
-                    }
+                    // // Todo Uncomment this
+                    // if (connection == other)
+                    // {
+                    //     continue;
+                    // }
 
                     audioPacketChannel.SendNoWrite(other);
+                }
+            }
+
+            if (network.IsClient)
+            {
+                if (players.TryGetValue(message.PlayerId, out var player))
+                {
+                    player.Audio.MaxReceivedChunk = Mathf.Max(player.Audio.MaxReceivedChunk, message.Chunk);
+                    message.Samples.AsSpan().CopyTo(player.Audio.Buffers[message.Chunk % player.Audio.Buffers.Length]);
                 }
             }
 

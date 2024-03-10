@@ -1,3 +1,4 @@
+using Source.Audio;
 using UnityEngine;
 
 namespace Source.Networking
@@ -12,5 +13,37 @@ namespace Source.Networking
         /// Null on server.
         /// </summary>
         public GameObject GameObject;
+
+        /// <summary>
+        /// Null on server.
+        /// </summary>
+        public PlayerAudioData Audio;
+
+        public class PlayerAudioData
+        {
+            /// <summary>
+            /// Circular buffer of audio samples.
+            /// </summary>
+            public float[][] Buffers;
+
+            /// <summary>
+            /// Max chunk received from network.
+            /// </summary>
+            public int MaxReceivedChunk;
+
+            /// <summary>
+            /// Last chunk output to speakers
+            /// </summary>
+            public int LastOutputChunk;
+
+            public PlayerAudioData()
+            {
+                Buffers = new float[256][];
+                for (var i = 0; i < Buffers.Length; i++)
+                {
+                    Buffers[i] = new float[AudioConstants.SamplesChunkSize];
+                }
+            }
+        }
     }
 }
