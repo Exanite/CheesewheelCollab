@@ -89,6 +89,45 @@ namespace Source.Networking
             }
         }
 
+        private void Update()
+        {
+            if (network.IsClient)
+            {
+                var processingBuffer = clientData.ProcessingBuffer;
+                var output = clientData.Output;
+                var queuedChunks = clientData.Output.QueuedSamplesPerChannel / AudioConstants.SamplesChunkSize;
+                if (queuedChunks < minChunksQueued)
+                {
+                    foreach (var (_, player) in players)
+                    {
+                        if (player.Audio.MaxReceivedChunk - player.Audio.LastOutputChunk > maxChunksBuffered)
+                        {
+                            player.Audio.LastOutputChunk = player.Audio.MaxReceivedChunk - maxChunksBuffered;
+                        }
+
+                        if (player.Audio.MaxReceivedChunk - player.Audio.LastOutputChunk > minChunksBuffered)
+                        {
+                            player.Audio.LastOutputChunk++;
+
+                            var currentBuffer = player.Audio.Buffers[player.Audio.LastOutputChunk % player.Audio.Buffers.Length];
+                            for (var i = 0; i < currentBuffer.Length; i++)
+                            {
+                                processingBuffer[i] += currentBuffer[i];
+                            }
+                        }
+                    }
+
+                    // Don't modify code below when processing audio
+                    for (var i = 0; i < processingBuffer.Length; i++)
+                    {
+                        processingBuffer[i] = Mathf.Clamp(processingBuffer[i], -1, 1);
+                    }
+                    output.QueueSamples(processingBuffer);
+                    processingBuffer.AsSpan().Clear();
+                }
+            }
+        }
+
         private void OnConnectionStarted(INetwork _, NetworkConnection connection)
         {
             if (network.IsServer)
