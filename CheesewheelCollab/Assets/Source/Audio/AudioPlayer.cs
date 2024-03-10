@@ -72,41 +72,55 @@ namespace Source.Audio
                 {
                     lastOutputChunk++;
 
-                    // Resample using sinc interpolation
-                    // https://onlinelibrary.wiley.com/doi/pdf/10.1002/1361-6374%28199612%294%3A4%3C225%3A%3AAID-BIO1%3E3.0.CO%3B2-G
+                    // Resample using sinc interpolation (apparently this is also a convolution, how convoluted...)
+                    var radius = 10;
+                    Span<float> samples = stackalloc float[radius * 2 + 1];
                     var recordingSamples0 = buffers[lastOutputChunk % buffers.Length];
                     var recordingSamples1 = buffers[(lastOutputChunk - 1 + buffers.Length) % buffers.Length];
                     var recordingSamples2 = buffers[(lastOutputChunk - 2 + buffers.Length) % buffers.Length];
                     for (var i = 0; i < activeBuffer.Length; i++)
                     {
-                        var N = AudioConstants.SamplesChunkSize * 3;
-                        var M = N - 1; // Not sure what this needs to be. Article says N - 1, N, or N + 1.
+                        var center = MathUtility.Remap(i, 0, activeBuffer.Length - 1, 0, AudioConstants.SamplesChunkSize - 1);
+                        var centerI = Mathf.FloorToInt(center);
+                        for (var samplesI = 0; samplesI < samples.Length; samplesI++)
+                        {
+                            var recordingSamples = recordingSamples1;
+                            var recordingSamplesI = centerI + samplesI - radius;
 
-                        var t = i / AudioConstants.PlaybackSampleRate; // Requested time
-                        var dt = 1f / AudioConstants.RecordingSampleRate; // Discretization interval
+                            if (recordingSamplesI < 0)
+                            {
+                                recordingSamplesI += AudioConstants.SamplesChunkSize;
+                                recordingSamples = recordingSamples0;
+                            }
+
+                            if (recordingSamplesI >= AudioConstants.SamplesChunkSize)
+                            {
+                                recordingSamplesI -= AudioConstants.SamplesChunkSize;
+                                recordingSamples = recordingSamples2;
+                            }
+
+                            samples[samplesI] = recordingSamples[recordingSamplesI];
+                        }
+
+                        // var centerIndex = Mathf.FloorToInt(recordingSamplesI);
+                        //
+                        // yData[0] = sample0 + 0 < 0 ? recordingSamples2[sample0 + 0 + AudioConstants.SamplesChunkSize] : recordingSamples1[sample0 + 0];
+                        // yData[1] = sample0 + 1 < 0 ? recordingSamples2[sample0 + 1 + AudioConstants.SamplesChunkSize] : recordingSamples1[sample0 + 1];
+                        // yData[2] = sample0 + 2 < 0 ? recordingSamples2[sample0 + 2 + AudioConstants.SamplesChunkSize] : recordingSamples1[sample0 + 2];
+                        // yData[3] = sample0 + 3 >= AudioConstants.SamplesChunkSize ? recordingSamples2[sample0 + 3 - AudioConstants.SamplesChunkSize] : recordingSamples1[sample0 + 3];
+                        // yData[4] = sample0 + 4 >= AudioConstants.SamplesChunkSize ? recordingSamples2[sample0 + 4 - AudioConstants.SamplesChunkSize] : recordingSamples1[sample0 + 4];
 
                         var y = 0f;
-                        for (var k = 0; k < N; k++)
+                        var N = samples.Length;
+                        var M = N - 1;
+                        var t = i / AudioConstants.PlaybackSampleRate;
+                        var dt = 1f / AudioConstants.RecordingSampleRate;
+                        for (var k = 0; k < samples.Length; k++)
                         {
-                            var dkBetweenRequestedSampleAndCurrentSample = t / dt - k + AudioConstants.SamplesChunkSize; // Needs to be in units of samples at recording Hz
-                            var numerator = Mathf.Sin(Mathf.PI * M * dkBetweenRequestedSampleAndCurrentSample / N);
-                            var denominator = N * Mathf.Sin(Mathf.PI * dkBetweenRequestedSampleAndCurrentSample / N);
+                            var numerator = Mathf.Sin(Mathf.PI * M * (t / dt - k) / N);
+                            var denominator = N * Mathf.Sin(Mathf.PI * (t / dt - k) / N);
 
-                            float sample;
-                            if (k < AudioConstants.SamplesChunkSize)
-                            {
-                                sample = recordingSamples2[k];
-                            }
-                            else if (k < AudioConstants.SamplesChunkSize * 2)
-                            {
-                                sample = recordingSamples1[k - AudioConstants.SamplesChunkSize];
-                            }
-                            else
-                            {
-                                sample = recordingSamples0[k - AudioConstants.SamplesChunkSize * 2];
-                            }
-
-                            y += sample * (numerator / denominator);
+                            y += samples[k] * (numerator / denominator);
                         }
 
                         activeBuffer[i] = y;
