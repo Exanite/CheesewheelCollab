@@ -72,8 +72,16 @@ namespace Source.Networking
 
             coreNetwork.StartConnection().Forget(e =>
             {
-                mainMenuScene.Load(LoadSceneMode.Additive);
+                mainMenuScene.Load(LoadSceneMode.Single);
             });
+        }
+
+        private void OnDestroy()
+        {
+            if (network.IsClient)
+            {
+                clientData.Output.Dispose();
+            }
         }
 
         private void FixedUpdate()
@@ -85,6 +93,50 @@ namespace Source.Networking
                 foreach (var connection in network.Connections)
                 {
                     playerUpdatePacketChannel.SendNoWrite(connection);
+                }
+            }
+        }
+
+        private void Update()
+        {
+            if (network.IsClient)
+            {
+                var processingBuffer = clientData.ProcessingBuffer;
+                var output = clientData.Output;
+                var queuedChunks = clientData.Output.QueuedSamplesPerChannel / AudioConstants.SamplesChunkSize;
+                if (queuedChunks < minChunksQueued)
+                {
+                    foreach (var (_, player) in players)
+                    {
+                        if (player == clientData.LocalPlayer)
+                        {
+                            continue;
+                        }
+
+                        if (player.Audio.MaxReceivedChunk - player.Audio.LastOutputChunk > maxChunksBuffered)
+                        {
+                            player.Audio.LastOutputChunk = player.Audio.MaxReceivedChunk - maxChunksBuffered;
+                        }
+
+                        if (player.Audio.MaxReceivedChunk - player.Audio.LastOutputChunk > minChunksBuffered)
+                        {
+                            player.Audio.LastOutputChunk++;
+
+                            var currentBuffer = player.Audio.Buffers[player.Audio.LastOutputChunk % player.Audio.Buffers.Length];
+                            for (var i = 0; i < currentBuffer.Length; i++)
+                            {
+                                processingBuffer[i] += currentBuffer[i];
+                            }
+                        }
+                    }
+
+                    // Don't modify code below when processing audio
+                    for (var i = 0; i < processingBuffer.Length; i++)
+                    {
+                        processingBuffer[i] = Mathf.Clamp(processingBuffer[i], -1, 1);
+                    }
+                    output.QueueSamples(processingBuffer);
+                    processingBuffer.AsSpan().Clear();
                 }
             }
         }
@@ -133,7 +185,7 @@ namespace Source.Networking
 
             if (network.IsClient)
             {
-                mainMenuScene.Load(LoadSceneMode.Additive);
+                mainMenuScene.Load(LoadSceneMode.Single);
             }
         }
 
@@ -207,11 +259,10 @@ namespace Source.Networking
                 audioPacketChannel.Write(message);
                 foreach (var other in network.Connections)
                 {
-                    // // Todo Uncomment this
-                    // if (connection == other)
-                    // {
-                    //     continue;
-                    // }
+                    if (connection == other)
+                    {
+                        continue;
+                    }
 
                     audioPacketChannel.SendNoWrite(other);
                 }

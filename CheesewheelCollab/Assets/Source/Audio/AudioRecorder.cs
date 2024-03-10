@@ -1,16 +1,38 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Pool;
 
 namespace Source.Audio
 {
     public abstract class AudioRecorder : MonoBehaviour
     {
+        private ObjectPool<QueuedChunk> pool = new(() => new QueuedChunk());
+        private Queue<QueuedChunk> queuedChunks = new();
+
         protected readonly float[] Buffer = new float[AudioConstants.SamplesChunkSize];
 
-        /// <remarks>
-        /// This might be called from a non-main thread.
-        /// </remarks>
+        /// <summary>
+        /// Will be called on the main thread.
+        /// </summary>
         public event SamplesAvailableCallback SamplesAvailable;
 
+        private void Update()
+        {
+            lock (pool)
+            lock (queuedChunks)
+            {
+                while (queuedChunks.TryDequeue(out var queuedChunk))
+                {
+                    SamplesAvailable?.Invoke(queuedChunk.Chunk, queuedChunk.Samples);
+                    pool.Release(queuedChunk);
+                }
+            }
+        }
+
+        /// <summary>
+        /// This can be called on any thread.
+        /// </summary>
         protected void OnSamplesAvailable(int chunk, float[] buffer)
         {
             for (var i = 0; i < buffer.Length; i++)
@@ -18,7 +40,21 @@ namespace Source.Audio
                 buffer[i] = Mathf.Clamp(buffer[i], -1, 1);
             }
 
-            SamplesAvailable?.Invoke(chunk, buffer);
+            lock (pool)
+            lock (queuedChunks)
+            {
+                var queuedChunk = pool.Get();
+                queuedChunk.Chunk = chunk;
+                buffer.AsSpan().CopyTo(queuedChunk.Samples);
+
+                queuedChunks.Enqueue(queuedChunk);
+            }
+        }
+
+        private class QueuedChunk
+        {
+            public int Chunk;
+            public float[] Samples = new float[AudioConstants.SamplesChunkSize];
         }
     }
 }
