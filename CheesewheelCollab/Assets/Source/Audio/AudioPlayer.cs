@@ -101,8 +101,6 @@ namespace Source.Audio
 
         private void LoadHRTF()
         {
-            //HRTF measured at 25 azimuth points (1st dim), 50 elevation points (2nd dim),
-            //  all at 5 degrees offset from the next point
             string path = Application.streamingAssetsPath + "/HRTFs/hrir58.mat";
 
             MatFileReader mfr = new MatFileReader(path);
@@ -113,9 +111,45 @@ namespace Source.Audio
                 //Debug.Log(mla.ContentToString() + "\n");
             }
 
-            Debug.Log(mfr.Data[1].ContentToString() + "\n");
-            double[][] mld = ((MLDouble)mfr.Data[1]).GetArray();
-            Debug.Log(mld[0][0]);
+            Debug.Log(mfr.Data[0].ContentToString() + "\n"); // OnR
+            Debug.Log(mfr.Data[1].ContentToString() + "\n"); // OnL
+            Debug.Log(mfr.Data[2].ContentToString() + "\n"); // ITD
+            Debug.Log(mfr.Data[3].ContentToString() + "\n"); // hrir_r
+            Debug.Log(mfr.Data[4].ContentToString() + "\n"); // hrir_l
+            Debug.Log(mfr.Data[5].ContentToString() + "\n"); // subject name
+            double[][] mld = ((MLDouble)mfr.Data[2]).GetArray();
+            Debug.Log(mld[12][0]);
+
+            
+        }
+
+        // placeholder function for how to apply hrtf to streaming audio
+        private void ApplyHRTF()
+		{
+            // get direction vector for sound
+
+            // convert to azimuth and elevation angles
+            // HRTF measured at 25 azimuth points (1st dim), 50 elevation points (2nd dim),
+            // all at 5 degrees offset from the next point
+            // azimuth index [0,12] is left side, 13 is middle, [14,25] is right side
+            // elevation index 8 is horizontal
+
+            // get correct hrtf for that azimuth and elevation
+
+            // convolve left and right channels against hrir_r, hrir_l
+
+            // delay left or right channel according to ITD
+            /* 
+            delay = ITD = mfr.Data[2][azimuth][elevation];
+            if (aIndex < 13) %sound is on left so delay right
+                add floor(delay) frames to end of wav_left 
+                add floor(delay) frames to start of wav_right
+            else
+                add floor(delay) frames to start of wav_left 
+                add floor(delay) frames to end of wav_right
+            end
+             */
+
         }
     }
 }
