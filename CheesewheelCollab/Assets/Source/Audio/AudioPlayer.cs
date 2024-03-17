@@ -35,7 +35,7 @@ namespace Source.Audio
         {
             LoadHRTF();
 
-            activeBuffer = new float[AudioConstants.SamplesChunkSize];
+            activeBuffer = new float[AudioConstants.SamplesChunkSize * 2];
             buffers = new float[256][];
             for (var i = 0; i < buffers.Length; i++)
             {
@@ -44,7 +44,7 @@ namespace Source.Audio
 
             recorder.SamplesAvailable += OnSamplesAvailable;
 
-            output = new AudioOutput(AudioConstants.SampleRate, 1);
+            output = new AudioOutput(AudioConstants.SampleRate, 2);
         }
 
         private void OnDestroy()
@@ -67,7 +67,9 @@ namespace Source.Audio
                 if (maxReceivedChunk - lastOutputChunk > minChunksBuffered)
                 {
                     lastOutputChunk++;
-                    buffers[lastOutputChunk % buffers.Length].AsSpan().CopyTo(activeBuffer);
+                    
+                    //apply HRTF to audio chunk
+                    float[] appliedChunk = ApplyHRTF(buffers);
                 }
 
                 // // Sine wave output (sounds like an organ)
@@ -124,8 +126,16 @@ namespace Source.Audio
         }
 
         // placeholder function for how to apply hrtf to streaming audio
-        private void ApplyHRTF()
+        private float[] ApplyHRTF(float[][] buffers)
 		{
+            float[] currBuffer = buffers[lastOutputChunk % buffers.Length];
+
+            float[] leftChannel = new float[AudioConstants.SamplesChunkSize];
+            float[] rightChannel = new float[AudioConstants.SamplesChunkSize];
+
+            currBuffer.AsSpan().CopyTo(leftChannel);
+            currBuffer.AsSpan().CopyTo(rightChannel);
+
             // get direction vector for sound
 
             // convert to azimuth and elevation angles
@@ -149,6 +159,16 @@ namespace Source.Audio
                 add floor(delay) frames to end of wav_right
             end
              */
+
+            // zip left and right channels together and output
+            float[] output = new float[leftChannel.Length * 2];
+            for (int i = 0; i < leftChannel.Length; i++)
+			{
+                output[i] = leftChannel[i];
+                output[i+1] = rightChannel[i];
+            }
+
+            return output;
 
         }
     }
