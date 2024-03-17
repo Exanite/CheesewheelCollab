@@ -70,6 +70,7 @@ namespace Source.Audio
                     
                     //apply HRTF to audio chunk
                     float[] appliedChunk = ApplyHRTF(buffers);
+                    appliedChunk.AsSpan().CopyTo(activeBuffer);
                 }
 
                 // // Sine wave output (sounds like an organ)
