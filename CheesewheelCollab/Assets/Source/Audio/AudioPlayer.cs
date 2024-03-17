@@ -165,8 +165,8 @@ namespace Source.Audio
             float[] output = new float[leftChannel.Length * 2];
             for (int i = 0; i < leftChannel.Length; i++)
 			{
-                output[i] = leftChannel[i];
-                output[i+1] = rightChannel[i];
+                output[i*2] = leftChannel[i];
+                output[i*2+1] = rightChannel[i];
             }
 
             return output;
