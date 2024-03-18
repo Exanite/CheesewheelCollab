@@ -114,12 +114,11 @@ namespace Source.Audio
                 //Debug.Log(mla.ContentToString() + "\n");
             }
 
-            Debug.Log(mfr.Data[0].ContentToString() + "\n"); // OnR
-            Debug.Log(mfr.Data[1].ContentToString() + "\n"); // OnL
-            Debug.Log(mfr.Data[2].ContentToString() + "\n"); // ITD
-            Debug.Log(mfr.Data[3].ContentToString() + "\n"); // hrir_r
-            Debug.Log(mfr.Data[4].ContentToString() + "\n"); // hrir_l
-            Debug.Log(mfr.Data[5].ContentToString() + "\n"); // subject name
+            Debug.Log(mfr.Content["OnR"].ContentToString() + "\n"); // OnR
+            Debug.Log(mfr.Content["OnL"].ContentToString() + "\n"); // OnL
+            Debug.Log(mfr.Content["ITD"].ContentToString() + "\n"); // ITD
+            Debug.Log(mfr.Content["hrir_r"].ContentToString() + "\n"); // hrir_r
+            Debug.Log(mfr.Content["hrir_l"].ContentToString() + "\n"); // hrir_l
             double[][] mld = ((MLDouble)mfr.Data[2]).GetArray();
             Debug.Log(mld[12][0]);
 
