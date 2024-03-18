@@ -31,6 +31,8 @@ namespace Source.Audio
 
         private AudioOutput output;
 
+        private MatFileReader mfr;
+
         private void Start()
         {
             LoadHRTF();
@@ -106,7 +108,7 @@ namespace Source.Audio
         {
             string path = Application.streamingAssetsPath + "/HRTFs/hrir58.mat";
 
-            MatFileReader mfr = new MatFileReader(path);
+            mfr = new MatFileReader(path);
 
             Debug.Log(mfr.MatFileHeader.ToString());
             foreach (MLArray mla in mfr.Data)
@@ -121,8 +123,6 @@ namespace Source.Audio
             Debug.Log(mfr.Content["hrir_l"].ContentToString() + "\n"); // hrir_l
             double[][] mld = ((MLDouble)mfr.Data[2]).GetArray();
             Debug.Log(mld[12][0]);
-
-            
         }
 
         // placeholder function for how to apply hrtf to streaming audio
@@ -143,22 +143,51 @@ namespace Source.Audio
             // all at 5 degrees offset from the next point
             // azimuth index [0,12] is left side, 13 is middle, [14,25] is right side
             // elevation index 8 is horizontal
+            int aIndex = 0;
+            int eIndex = 8;
 
             // get correct hrtf for that azimuth and elevation
+            Debug.Log(((MLDouble)mfr.Content["hrir_l"]).GetArray()[aIndex][eIndex].ToString()); //this would idealy print an array
+            double[] hrir_l;
+
 
             // convolve left and right channels against hrir_r, hrir_l
+            //HRTFProcessing.Convolve(leftChannel, hrir_l);
 
             // delay left or right channel according to ITD
-            /* 
-            delay = ITD = mfr.Data[2][azimuth][elevation];
-            if (aIndex < 13) %sound is on left so delay right
-                add floor(delay) frames to end of wav_left 
-                add floor(delay) frames to start of wav_right
-            else
-                add floor(delay) frames to start of wav_left 
-                add floor(delay) frames to end of wav_right
-            end
-             */
+            int numDelaySamples = (int)((MLDouble)mfr.Content["ITD"]).GetArray()[aIndex][eIndex];
+            if (aIndex < 13) //add delay end of left, start of right
+			{
+                float[] temp = leftChannel;
+                leftChannel = new float[temp.Length + numDelaySamples];
+                for (int i = 0; i < temp.Length; i++)
+				{
+                    leftChannel[i] = temp[i];
+				}
+
+                temp = rightChannel;
+                rightChannel = new float[temp.Length + numDelaySamples];
+                for (int i = 0; i < temp.Length; i++)
+                {
+                    rightChannel[i + numDelaySamples] = temp[i];
+                }
+            }
+            else //add delay start of left, end of right
+            {
+                float[] temp = leftChannel;
+                leftChannel = new float[temp.Length + numDelaySamples];
+                for (int i = 0; i < temp.Length; i++)
+                {
+                    leftChannel[i + numDelaySamples] = temp[i];
+                }
+
+                temp = rightChannel;
+                rightChannel = new float[temp.Length + numDelaySamples];
+                for (int i = 0; i < temp.Length; i++)
+                {
+                    rightChannel[i] = temp[i];
+                }
+            }
 
             // zip left and right channels together and output
             float[] output = new float[leftChannel.Length * 2];
