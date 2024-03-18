@@ -54,8 +54,6 @@ namespace Source.Audio
             output.Dispose();
         }
 
-        // private int sineChunk;
-
         private void Update()
         {
             var queuedChunks = output.QueuedSamplesPerChannel / AudioConstants.SamplesChunkSize;
@@ -78,18 +76,6 @@ namespace Source.Audio
 					}
                     //appliedChunk.AsSpan().CopyTo(activeBuffer);
                 }
-
-                // // Sine wave output (sounds like an organ)
-                // for (var i = 0; i < activeBuffer.Length; i++)
-                // {
-                //     var time = (float)(sineChunk * activeBuffer.Length + i) / AudioConstants.SampleRate;
-                //
-                //     activeBuffer[i] += 0.025f * Mathf.Sin(Mathf.Sin(2 * Mathf.PI * 220 * time) + 2 * Mathf.PI * 220 * time);
-                //     activeBuffer[i] += 0.025f * Mathf.Sin(Mathf.Sin(2 * Mathf.PI * 440 * time) + 2 * Mathf.PI * 440 * time);
-                //     activeBuffer[i] += 0.025f * Mathf.Sin(Mathf.Sin(2 * Mathf.PI * 880 * time) + 2 * Mathf.PI * 880 * time);
-                //     activeBuffer[i] += 0.025f * Mathf.Sin(Mathf.Sin(2 * Mathf.PI * 1760 * time) + 2 * Mathf.PI * 1760 * time);
-                // }
-                // sineChunk++;
 
                 // Don't modify code below when processing audio
                 for (var i = 0; i < activeBuffer.Length; i++)
