@@ -72,7 +72,11 @@ namespace Source.Audio
                     
                     //apply HRTF to audio chunk
                     float[] appliedChunk = ApplyHRTF(buffers);
-                    appliedChunk.AsSpan().CopyTo(activeBuffer);
+                    for (int i = 0; i < activeBuffer.Length; i++)
+					{
+                        activeBuffer[i] = appliedChunk[i];
+					}
+                    //appliedChunk.AsSpan().CopyTo(activeBuffer);
                 }
 
                 // // Sine wave output (sounds like an organ)
@@ -143,7 +147,7 @@ namespace Source.Audio
             // all at 5 degrees offset from the next point
             // azimuth index [0,12] is left side, 13 is middle, [14,25] is right side
             // elevation index 8 is horizontal
-            int aIndex = 0;
+            int aIndex = 13;
             int eIndex = 8;
 
             // get correct hrtf for that azimuth and elevation
@@ -156,6 +160,7 @@ namespace Source.Audio
 
             // delay left or right channel according to ITD
             int numDelaySamples = (int)((MLDouble)mfr.Content["ITD"]).GetArray()[aIndex][eIndex];
+            Debug.Log("numDelaySamples: " + numDelaySamples);
             if (aIndex < 13) //add delay end of left, start of right
 			{
                 float[] temp = leftChannel;
