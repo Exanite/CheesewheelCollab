@@ -69,7 +69,7 @@ namespace Source.Audio
                     lastOutputChunk++;
                     
                     //apply HRTF to audio chunk
-                    float[] appliedChunk = ApplyHRTF(buffers);
+                    float[] appliedChunk = ApplyHRTF();
                     for (int i = 0; i < processingBuffer.Length; i++)
 					{
                         processingBuffer[i] = appliedChunk[i];
@@ -116,7 +116,7 @@ namespace Source.Audio
         }
 
         // placeholder function for how to apply hrtf to streaming audio
-        private float[] ApplyHRTF(float[][] buffers)
+        private float[] ApplyHRTF()
 		{
             float[] currBuffer = buffers[lastOutputChunk % buffers.Length];
 
