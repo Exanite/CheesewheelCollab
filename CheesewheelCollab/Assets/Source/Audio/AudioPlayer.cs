@@ -70,11 +70,7 @@ namespace Source.Audio
                     
                     //apply HRTF to audio chunk
                     float[] appliedChunk = ApplyHRTF();
-                    for (int i = 0; i < processingBuffer.Length; i++)
-					{
-                        processingBuffer[i] = appliedChunk[i];
-					}
-                    //appliedChunk.AsSpan().CopyTo(activeBuffer);
+                    appliedChunk.AsSpan().CopyTo(processingBuffer);
                 }
 
                 // Don't modify code below when processing audio
@@ -118,13 +114,8 @@ namespace Source.Audio
         // placeholder function for how to apply hrtf to streaming audio
         private float[] ApplyHRTF()
 		{
-            float[] currBuffer = buffers[lastOutputChunk % buffers.Length];
-
             float[] leftChannel = new float[AudioConstants.SamplesChunkSize];
             float[] rightChannel = new float[AudioConstants.SamplesChunkSize];
-
-            currBuffer.AsSpan().CopyTo(leftChannel);
-            currBuffer.AsSpan().CopyTo(rightChannel);
 
             // get direction vector for sound
 
@@ -136,54 +127,41 @@ namespace Source.Audio
             int aIndex = 13;
             int eIndex = 8;
 
-            // get correct hrtf for that azimuth and elevation
+            // Get correct hrtf for that azimuth and elevation
             Debug.Log(((MLDouble)mfr.Content["hrir_l"]).GetArray()[aIndex][eIndex].ToString()); //this would idealy print an array
             double[] hrir_l;
 
+            // Delay left or right channel according to ITD
+            // int delayInSamples = (int)((MLDouble)mfr.Content["ITD"]).GetArray()[aIndex][eIndex];
+            var delayInSamples = 26; // Max ITD delay is 25-30 samples or around 0.6 ms
+            float[] current = buffers[(lastOutputChunk - 1 + buffers.Length) % buffers.Length];
+            float[] next = buffers[(lastOutputChunk - 0 + buffers.Length) % buffers.Length];
 
-            // convolve left and right channels against hrir_r, hrir_l
+            current.AsSpan().CopyTo(leftChannel);
+            current.AsSpan().CopyTo(rightChannel);
+
+            // // Add delay to start of left
+            // current.AsSpan().CopyTo(rightChannel);
+            // current.AsSpan().Slice(delayInSamples).CopyTo(leftChannel);
+            // next.AsSpan().Slice(0, delayInSamples).CopyTo(leftChannel.AsSpan().Slice(leftChannel.Length - delayInSamples - 1));
+            //
+            // // Swap buffers if needed
+            // var addDelayToRight = aIndex < 13;
+            // if (addDelayToRight)
+            // {
+            //     var temp = leftChannel;
+            //     leftChannel = rightChannel;
+            //     rightChannel = temp;
+            // }
+
+            // Convolve left and right channels against hrir_r, hrir_l
             //HRTFProcessing.Convolve(leftChannel, hrir_l);
 
-            // delay left or right channel according to ITD
-            int numDelaySamples = (int)((MLDouble)mfr.Content["ITD"]).GetArray()[aIndex][eIndex];
-            Debug.Log("numDelaySamples: " + numDelaySamples);
-            if (aIndex < 13) //add delay end of left, start of right
+            // Cannot change output size, otherwise we record and consume at different rates
+            float[] output = new float[AudioConstants.SamplesChunkSize * 2];
+            for (int i = 0; i < AudioConstants.SamplesChunkSize; i++)
 			{
-                float[] temp = leftChannel;
-                leftChannel = new float[temp.Length + numDelaySamples];
-                for (int i = 0; i < temp.Length; i++)
-				{
-                    leftChannel[i] = temp[i];
-				}
-
-                temp = rightChannel;
-                rightChannel = new float[temp.Length + numDelaySamples];
-                for (int i = 0; i < temp.Length; i++)
-                {
-                    rightChannel[i + numDelaySamples] = temp[i];
-                }
-            }
-            else //add delay start of left, end of right
-            {
-                float[] temp = leftChannel;
-                leftChannel = new float[temp.Length + numDelaySamples];
-                for (int i = 0; i < temp.Length; i++)
-                {
-                    leftChannel[i + numDelaySamples] = temp[i];
-                }
-
-                temp = rightChannel;
-                rightChannel = new float[temp.Length + numDelaySamples];
-                for (int i = 0; i < temp.Length; i++)
-                {
-                    rightChannel[i] = temp[i];
-                }
-            }
-
-            // zip left and right channels together and output
-            float[] output = new float[leftChannel.Length * 2];
-            for (int i = 0; i < leftChannel.Length; i++)
-			{
+                // Zip left and right channels together and output
                 output[i*2] = leftChannel[i];
                 output[i*2+1] = rightChannel[i];
             }
