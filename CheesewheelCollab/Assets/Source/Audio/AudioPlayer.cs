@@ -56,7 +56,7 @@ namespace Source.Audio
 
         private void Update()
         {
-            var queuedChunks = output.QueuedSamplesPerChannel / AudioConstants.SamplesChunkSize;
+            var queuedChunks = output.QueuedSamplesPerChannel / processingBuffer.Length;
             if (queuedChunks < minChunksQueued)
             {
                 if (maxReceivedChunk - lastOutputChunk > maxChunksBuffered)
@@ -69,8 +69,7 @@ namespace Source.Audio
                     lastOutputChunk++;
                     
                     //apply HRTF to audio chunk
-                    float[] appliedChunk = ApplyHRTF();
-                    appliedChunk.AsSpan().CopyTo(processingBuffer);
+                    ApplyHRTF();
                 }
 
                 // Don't modify code below when processing audio
@@ -111,63 +110,59 @@ namespace Source.Audio
             Debug.Log(mld[12][0]);
         }
 
+        private float[] leftChannel = new float[AudioConstants.SamplesChunkSize];
+        private float[] rightChannel = new float[AudioConstants.SamplesChunkSize];
+
         // placeholder function for how to apply hrtf to streaming audio
-        private float[] ApplyHRTF()
+        private void ApplyHRTF()
 		{
-            float[] leftChannel = new float[AudioConstants.SamplesChunkSize];
-            float[] rightChannel = new float[AudioConstants.SamplesChunkSize];
-
-            // get direction vector for sound
-
             // convert to azimuth and elevation angles
             // HRTF measured at 25 azimuth points (1st dim), 50 elevation points (2nd dim),
             // all at 5 degrees offset from the next point
             // azimuth index [0,12] is left side, 13 is middle, [14,25] is right side
+            // The above might be wrong - 0-11, 12, 13-24 might be what we need (off by one due to Matlab and C# differences)
             // elevation index 8 is horizontal
-            int aIndex = 13;
+            // int aIndex = 13;
+            int aIndex = (int)(Time.time * 10 % 25);
             int eIndex = 8;
 
             // Get correct hrtf for that azimuth and elevation
-            Debug.Log(((MLDouble)mfr.Content["hrir_l"]).GetArray()[aIndex][eIndex].ToString()); //this would idealy print an array
-            double[] hrir_l;
+            // Debug.Log(((MLDouble)mfr.Content["hrir_l"]).GetArray()[aIndex][eIndex].ToString()); //this would idealy print an array
+            // double[] hrir_l;
 
             // Delay left or right channel according to ITD
-            // int delayInSamples = (int)((MLDouble)mfr.Content["ITD"]).GetArray()[aIndex][eIndex];
-            var delayInSamples = 26; // Max ITD delay is 25-30 samples or around 0.6 ms
+            int delayInSamples = (int)((MLDouble)mfr.Content["ITD"]).GetArray()[aIndex][eIndex];
+            // var delayInSamples = 26; // Max ITD delay is 25-30 samples or around 0.6 ms
             float[] current = buffers[(lastOutputChunk - 1 + buffers.Length) % buffers.Length];
             float[] next = buffers[(lastOutputChunk - 0 + buffers.Length) % buffers.Length];
 
             current.AsSpan().CopyTo(leftChannel);
             current.AsSpan().CopyTo(rightChannel);
 
-            // // Add delay to start of left
-            // current.AsSpan().CopyTo(rightChannel);
-            // current.AsSpan().Slice(delayInSamples).CopyTo(leftChannel);
-            // next.AsSpan().Slice(0, delayInSamples).CopyTo(leftChannel.AsSpan().Slice(leftChannel.Length - delayInSamples - 1));
-            //
-            // // Swap buffers if needed
-            // var addDelayToRight = aIndex < 13;
-            // if (addDelayToRight)
-            // {
-            //     var temp = leftChannel;
-            //     leftChannel = rightChannel;
-            //     rightChannel = temp;
-            // }
+            // Add delay to start of left
+            current.AsSpan().CopyTo(rightChannel);
+            current.AsSpan().Slice(delayInSamples).CopyTo(leftChannel);
+            next.AsSpan().Slice(0, delayInSamples).CopyTo(leftChannel.AsSpan().Slice(leftChannel.Length - delayInSamples - 1));
+
+            // Swap buffers if needed
+            var addDelayToRight = aIndex < 12;
+            if (addDelayToRight)
+            {
+                var temp = leftChannel;
+                leftChannel = rightChannel;
+                rightChannel = temp;
+            }
 
             // Convolve left and right channels against hrir_r, hrir_l
             //HRTFProcessing.Convolve(leftChannel, hrir_l);
 
             // Cannot change output size, otherwise we record and consume at different rates
-            float[] output = new float[AudioConstants.SamplesChunkSize * 2];
             for (int i = 0; i < AudioConstants.SamplesChunkSize; i++)
 			{
                 // Zip left and right channels together and output
-                output[i*2] = leftChannel[i];
-                output[i*2+1] = rightChannel[i];
+                processingBuffer[i*2] = leftChannel[i];
+                processingBuffer[i*2+1] = rightChannel[i];
             }
-
-            return output;
-
         }
     }
 }
