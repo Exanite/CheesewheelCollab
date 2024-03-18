@@ -17,7 +17,7 @@ namespace Source.Audio
         [SerializeField] private int minChunksQueued = 2;
 
         private float[][] buffers;
-        private float[] activeBuffer;
+        private float[] processingBuffer;
 
         /// <summary>
         /// Max chunk received from AudioRecorder / network
@@ -37,7 +37,7 @@ namespace Source.Audio
         {
             LoadHRTF();
 
-            activeBuffer = new float[AudioConstants.SamplesChunkSize * 2];
+            processingBuffer = new float[AudioConstants.SamplesChunkSize * 2];
             buffers = new float[256][];
             for (var i = 0; i < buffers.Length; i++)
             {
@@ -70,20 +70,20 @@ namespace Source.Audio
                     
                     //apply HRTF to audio chunk
                     float[] appliedChunk = ApplyHRTF(buffers);
-                    for (int i = 0; i < activeBuffer.Length; i++)
+                    for (int i = 0; i < processingBuffer.Length; i++)
 					{
-                        activeBuffer[i] = appliedChunk[i];
+                        processingBuffer[i] = appliedChunk[i];
 					}
                     //appliedChunk.AsSpan().CopyTo(activeBuffer);
                 }
 
                 // Don't modify code below when processing audio
-                for (var i = 0; i < activeBuffer.Length; i++)
+                for (var i = 0; i < processingBuffer.Length; i++)
                 {
-                    activeBuffer[i] = Mathf.Clamp(activeBuffer[i], -1, 1);
+                    processingBuffer[i] = Mathf.Clamp(processingBuffer[i], -1, 1);
                 }
-                output.QueueSamples(activeBuffer);
-                activeBuffer.AsSpan().Clear();
+                output.QueueSamples(processingBuffer);
+                processingBuffer.AsSpan().Clear();
             }
         }
 
