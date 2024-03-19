@@ -4,13 +4,15 @@ using Exanite.Core.Utilities;
 using MathNet.Numerics.IntegralTransforms;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace Source.Audio
 {
     public class FftRenderer : MonoBehaviour
     {
-        [SerializeField] private AudioRecorder recorder;
+        [FormerlySerializedAs("recorder")]
+        [SerializeField] private AudioProvider audioProvider;
         [SerializeField] private RawImage image;
 
         [SerializeField] private int minFrequency = 0;
@@ -29,7 +31,7 @@ namespace Source.Audio
 
             image.texture = texture;
 
-            recorder.SamplesAvailable += (_, samples) => buffer = samples;
+            audioProvider.SamplesAvailable += (_, samples) => buffer = samples;
         }
 
         private void Update()

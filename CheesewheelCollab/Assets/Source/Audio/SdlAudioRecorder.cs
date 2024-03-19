@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Source.Audio
 {
-    public class SdlAudioRecorder : AudioRecorder
+    public class SdlAudioRecorder : AudioProvider
     {
         private int chunk = 0;
 

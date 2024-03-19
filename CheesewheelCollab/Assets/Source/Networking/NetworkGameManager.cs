@@ -8,6 +8,7 @@ using Source.Audio;
 using UniDi;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 using Network = Exanite.Networking.Network;
 
 namespace Source.Networking
@@ -18,7 +19,8 @@ namespace Source.Networking
         [SerializeField] private GameObject playerPrefab;
         [SerializeField] private GameObject localPlayerPrefab;
         [SerializeField] private SceneIdentifier mainMenuScene;
-        [SerializeField] private AudioRecorder audioRecorder;
+        [FormerlySerializedAs("audioRecorder")]
+        [SerializeField] private AudioProvider audioProvider;
 
         [Header("Audio")]
         [SerializeField] private int minChunksBuffered = 5;
@@ -57,7 +59,7 @@ namespace Source.Networking
             {
                 clientData = new ClientData();
 
-                audioRecorder.SamplesAvailable += (chunk, samples) =>
+                audioProvider.SamplesAvailable += (chunk, samples) =>
                 {
                     audioPacketChannel.Message.Chunk = chunk;
                     samples.AsSpan().CopyTo(audioPacketChannel.Message.Samples);

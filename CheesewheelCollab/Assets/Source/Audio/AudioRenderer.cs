@@ -1,12 +1,14 @@
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace Source.Audio
 {
     public class AudioRenderer : MonoBehaviour
     {
-        [SerializeField] private AudioRecorder recorder;
+        [FormerlySerializedAs("recorder")]
+        [SerializeField] private AudioProvider audioProvider;
         [SerializeField] private RawImage image;
 
         private Texture2D texture;
@@ -14,7 +16,7 @@ namespace Source.Audio
 
         private void Start()
         {
-            recorder.SamplesAvailable += (_, samples) => buffer = samples;
+            audioProvider.SamplesAvailable += (_, samples) => buffer = samples;
         }
 
         private void Update()
