@@ -110,10 +110,13 @@ namespace Source.Audio
         {
             // Todo Get position and use Hrtf to convert to indexes
 
-            // --- Apply ITD ---
-            var delayInSamples = hrtf.GetItd(azimuth, elevation);
+            // --- Get audio buffers ---
+            var previous = buffers[(lastOutputChunk - 2 + buffers.Length) % buffers.Length];
             var current = buffers[(lastOutputChunk - 1 + buffers.Length) % buffers.Length];
             var next = buffers[(lastOutputChunk - 0 + buffers.Length) % buffers.Length];
+
+            // --- Apply ITD ---
+            var delayInSamples = hrtf.GetItd(azimuth, elevation);
 
             current.AsSpan().CopyTo(leftChannel);
             current.AsSpan().CopyTo(rightChannel);
@@ -144,8 +147,8 @@ namespace Source.Audio
             var leftHrtf = hrtf.GetHrtf(azimuth, elevation, false);
             var rightHrtf = hrtf.GetHrtf(azimuth, elevation, true);
 
-            hrtf.Convolve(leftChannel, leftHrtf).AsSpan().CopyTo(leftChannel);
-            hrtf.Convolve(rightChannel, rightHrtf).AsSpan().CopyTo(rightChannel);
+            hrtf.Convolve(previous, current, next, leftHrtf).AsSpan().CopyTo(leftChannel);
+            hrtf.Convolve(previous, current, next, rightHrtf).AsSpan().CopyTo(rightChannel);
 
             for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
             {
