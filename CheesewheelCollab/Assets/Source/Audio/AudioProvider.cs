@@ -5,7 +5,7 @@ using UnityEngine.Pool;
 
 namespace Source.Audio
 {
-    public abstract class AudioRecorder : MonoBehaviour
+    public abstract class AudioProvider : MonoBehaviour
     {
         private ObjectPool<QueuedChunk> pool = new(() => new QueuedChunk());
         private Queue<QueuedChunk> queuedChunks = new();

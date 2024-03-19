@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Source.Audio
 {
-    public class UnityAudioRecorder : AudioRecorder
+    public class UnityAudioRecorder : AudioProvider
     {
         private AudioClip recording;
         private int lastPosition = 0;

@@ -1,13 +1,15 @@
 using System;
 using csmatio.io;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Source.Audio
 {
     public class AudioPlayer : MonoBehaviour
     {
+        [FormerlySerializedAs("recorder")]
         [Header("Dependencies")]
-        [SerializeField] private AudioRecorder recorder;
+        [SerializeField] private AudioProvider audioProvider;
 
         // See https://trello.com/c/rQ9w7TyA/26-audio-format
         [Header("Settings")]
@@ -43,7 +45,7 @@ namespace Source.Audio
                 buffers[i] = new float[AudioConstants.SamplesChunkSize];
             }
 
-            recorder.SamplesAvailable += OnSamplesAvailable;
+            audioProvider.SamplesAvailable += OnSamplesAvailable;
 
             output = new AudioOutput(AudioConstants.SampleRate, 2);
         }
