@@ -93,7 +93,7 @@ namespace Source.Audio
 
         private void LoadHrtf()
         {
-            var path = Application.streamingAssetsPath + "/CIPIC/standard_hrir_database/subject_058/hrir_final.mat";
+            var path = Application.streamingAssetsPath + "/CIPIC/standard_hrir_database/subject_058/hrir_final.matlab";
             hrtf = new Hrtf(new MatFileReader(path));
         }
 
