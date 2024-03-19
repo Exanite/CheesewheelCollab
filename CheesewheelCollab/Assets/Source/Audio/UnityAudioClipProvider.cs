@@ -6,6 +6,9 @@ namespace Source.Audio
     {
         [SerializeField] private AudioClip clip;
 
+        [Range(0, 1)]
+        [SerializeField] private float volume = 0.5f;
+
         private int chunk;
         private float elapsedTime;
         private float[] samples;
@@ -27,7 +30,7 @@ namespace Source.Audio
                 var startPosition = chunk * AudioConstants.SamplesChunkSize;
                 for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
                 {
-                    Buffer[i] = samples[(startPosition + i) % samples.Length];
+                    Buffer[i] = samples[(startPosition + i) % samples.Length] * Mathf.Clamp01(volume);
                 }
 
                 OnSamplesAvailable(chunk, Buffer);
