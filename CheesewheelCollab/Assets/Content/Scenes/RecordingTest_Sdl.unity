@@ -228,10 +228,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b2f2c7a1e0074cd4a80ee972f3a42045, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  recorder: {fileID: 196124097}
+  audioProvider: {fileID: 196124097}
   minChunksBuffered: 5
   maxChunksBuffered: 10
   minChunksQueued: 2
+  azimuth: 12
+  elevation: 8
 --- !u!4 &169871577
 Transform:
   m_ObjectHideFlags: 0
@@ -341,7 +343,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1b8f3226739849df9551cecb0b068c8c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  recorder: {fileID: 196124097}
+  audioProvider: {fileID: 196124097}
   image: {fileID: 424293168}
   minFrequency: 0
   maxFrequency: 5000
@@ -672,7 +674,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e04dd5105454419a30d21b83750da2a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  recorder: {fileID: 196124097}
+  audioProvider: {fileID: 196124097}
   image: {fileID: 828288546}
 --- !u!114 &828288546
 MonoBehaviour:

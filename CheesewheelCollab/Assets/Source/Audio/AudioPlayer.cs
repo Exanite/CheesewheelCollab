@@ -36,7 +36,7 @@ namespace Source.Audio
 
         private void Start()
         {
-            LoadHRTF();
+            LoadHrtf();
 
             processingBuffer = new float[AudioConstants.SamplesChunkSize * 2];
             buffers = new float[256][];
@@ -91,7 +91,7 @@ namespace Source.Audio
             samples.CopyTo(buffers[chunk % buffers.Length], 0);
         }
 
-        private void LoadHRTF()
+        private void LoadHrtf()
         {
             var path = Application.streamingAssetsPath + "/HRTFs/hrir58.mat";
             hrtf = new Hrtf(new MatFileReader(path));
@@ -99,17 +99,23 @@ namespace Source.Audio
 
         private float[] leftChannel = new float[AudioConstants.SamplesChunkSize];
         private float[] rightChannel = new float[AudioConstants.SamplesChunkSize];
+
+        [Range(0, 24)]
+        public int azimuth = 12;
+        [Range(0, 49)]
+        public int elevation = 8;
+
         private void ApplyHrtf()
         {
             // Todo Get position and use Hrtf to convert to indexes
 
-            var azimuth = (int)(Time.time * 10 % 25);
-            var elevation = 8;
+            // --- Get audio buffers ---
+            var previous = buffers[(lastOutputChunk - 2 + buffers.Length) % buffers.Length];
+            var current = buffers[(lastOutputChunk - 1 + buffers.Length) % buffers.Length];
+            var next = buffers[(lastOutputChunk - 0 + buffers.Length) % buffers.Length];
 
             // --- Apply ITD ---
             var delayInSamples = hrtf.GetItd(azimuth, elevation);
-            var current = buffers[(lastOutputChunk - 1 + buffers.Length) % buffers.Length];
-            var next = buffers[(lastOutputChunk - 0 + buffers.Length) % buffers.Length];
 
             current.AsSpan().CopyTo(leftChannel);
             current.AsSpan().CopyTo(rightChannel);
@@ -129,11 +135,41 @@ namespace Source.Audio
 
             // --- Apply HRTF ---
 
+            var originalMaxAmplitude = 0f;
+            for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
+            {
+                originalMaxAmplitude = Mathf.Max(originalMaxAmplitude, Mathf.Abs(current[i]));
+            }
+
+            var convolvedMaxAmplitude = 0f;
+
             var leftHrtf = hrtf.GetHrtf(azimuth, elevation, false);
             var rightHrtf = hrtf.GetHrtf(azimuth, elevation, true);
 
-            // hrtf.Convolve(leftChannel, leftHrtf).AsSpan().CopyTo(leftChannel);
-            // hrtf.Convolve(rightChannel, rightHrtf).AsSpan().CopyTo(rightChannel);
+            hrtf.Convolve(previous, current, next, leftHrtf).AsSpan().CopyTo(leftChannel);
+            hrtf.Convolve(previous, current, next, rightHrtf).AsSpan().CopyTo(rightChannel);
+
+            for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
+            {
+                convolvedMaxAmplitude = Mathf.Max(convolvedMaxAmplitude, Mathf.Abs(leftChannel[i]), Mathf.Abs(rightChannel[i]));
+            }
+
+            // Reduce to original amplitude
+            var amplitudeFactor = convolvedMaxAmplitude / originalMaxAmplitude;
+            if (originalMaxAmplitude > 1)
+            {
+                // Reduce max amplitude to 1
+                amplitudeFactor *= originalMaxAmplitude;
+            }
+
+            if (amplitudeFactor > 1)
+            {
+                for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
+                {
+                    leftChannel[i] /= amplitudeFactor;
+                    rightChannel[i] /= amplitudeFactor;
+                }
+            }
 
             // --- Copy to output ---
             // Cannot change output size, otherwise we record and consume at different rates

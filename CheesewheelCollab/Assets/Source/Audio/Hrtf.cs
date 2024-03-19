@@ -119,7 +119,7 @@ namespace Source.Audio
         /// This function was taken from the Accord Framework, under the LGPL License.
         /// https://github.com/accord-net/framework/blob/1ab0cc0ba55bcc3d46f20e7bbe7224b58cd01854/Sources/Accord.Math/Matrix/Matrix.Common.cs#L1937
         /// </remarks>
-        public float[] Convolve(float[] samples, float[] hrtf)
+        public float[] Convolve(float[] previous, float[] current, float[] next, float[] hrtf)
         {
             var m = (int)Math.Ceiling(hrtf.Length / 2.0);
             for (var i = 0; i < convolveResult.Length; i++)
@@ -128,9 +128,18 @@ namespace Source.Audio
                 for (var j = 0; j < hrtf.Length; j++)
                 {
                     var k = i - j + m - 1;
-                    if (k >= 0 && k < samples.Length)
+
+                    if (k < 0)
                     {
-                        convolveResult[i] += samples[k] * hrtf[j];
+                        convolveResult[i] += previous[k + AudioConstants.SamplesChunkSize] * hrtf[j];
+                    }
+                    else if (k >= AudioConstants.SamplesChunkSize)
+                    {
+                        convolveResult[i] += next[k - AudioConstants.SamplesChunkSize] * hrtf[j];
+                    }
+                    else
+                    {
+                        convolveResult[i] += current[k] * hrtf[j];
                     }
                 }
             }
