@@ -1,3 +1,4 @@
+using System;
 using csmatio.io;
 using csmatio.types;
 using UnityEngine;
@@ -22,8 +23,42 @@ namespace Source.Audio
         {
             itds = ((MLDouble)reader.Content["ITD"]).GetArray();
 
-            var rawLeftHrtfs = ((MLDouble)reader.Content["hrir_l"]).GetArray(); // Need to unpack and convert to float arrays
-            var rawRightHrtfs = ((MLDouble)reader.Content["hrir_r"]).GetArray(); // Need to unpack and convert to float arrays
+            var rawLeftHrtfs = ((MLDouble)reader.Content["hrir_l"]).GetArray();
+            var rawRightHrtfs = ((MLDouble)reader.Content["hrir_r"]).GetArray();
+
+            leftHrtfs = new float[AzimuthCount][][];
+            for (var azimuthI = 0; azimuthI < AzimuthCount; azimuthI++)
+            {
+                leftHrtfs[azimuthI] = new float[ElevationCount][];
+                for (var elevationI = 0; elevationI < ElevationCount; elevationI++)
+                {
+                    var samplesFloats = new float[HrtfSampleCount];
+                    var samplesDoubles = rawLeftHrtfs[azimuthI].AsSpan(elevationI * HrtfSampleCount, HrtfSampleCount);
+                    for (var i = 0; i < HrtfSampleCount; i++)
+                    {
+                        samplesFloats[i] = (float)samplesDoubles[i];
+                    }
+
+                    leftHrtfs[azimuthI][elevationI] = samplesFloats;
+                }
+            }
+            
+            rightHrtfs = new float[AzimuthCount][][];
+            for (var azimuthI = 0; azimuthI < AzimuthCount; azimuthI++)
+            {
+                rightHrtfs[azimuthI] = new float[ElevationCount][];
+                for (var elevationI = 0; elevationI < ElevationCount; elevationI++)
+                {
+                    var samplesFloats = new float[HrtfSampleCount];
+                    var samplesDoubles = rawRightHrtfs[azimuthI].AsSpan(elevationI * HrtfSampleCount, HrtfSampleCount);
+                    for (var i = 0; i < HrtfSampleCount; i++)
+                    {
+                        samplesFloats[i] = (float)samplesDoubles[i];
+                    }
+
+                    rightHrtfs[azimuthI][elevationI] = samplesFloats;
+                }
+            }
         }
 
         public bool IsRight(int azimuth)
