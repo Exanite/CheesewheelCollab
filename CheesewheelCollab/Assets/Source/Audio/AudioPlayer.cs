@@ -120,8 +120,12 @@ namespace Source.Audio
             // Convert to azimuth and elevation angles
             // HRTF measured at 25 azimuth points (1st dim), 50 elevation points (2nd dim),
             // All at 5 degrees offset from the next point
-            var azimuthI = (int)(Time.time * 10 % 25); // [0,12] is left side, 13 is middle, [14,25] is right side
-            var elevationI = 8; // 8 is horizontal
+
+            // [0,12] is left side, 13 is middle, [14,25] is right side
+            // var azimuthI = (int)(Time.time * 10 % 25);
+            var azimuthI = 24;
+            // 8 is horizontal
+            var elevationI = 8;
 
             // Get correct hrtf for that azimuth and elevation
             // Debug.Log(((MLDouble)mfr.Content["hrir_l"]).GetArray()[aIndex][eIndex].ToString()); //this would idealy print an array
@@ -142,7 +146,7 @@ namespace Source.Audio
             next.AsSpan().Slice(0, delayInSamples).CopyTo(leftChannel.AsSpan().Slice(leftChannel.Length - delayInSamples - 1));
 
             // Swap buffers if needed
-            var addDelayToRight = azimuthI < 12;
+            var addDelayToRight = azimuthI > 12;
             if (addDelayToRight)
             {
                 var temp = leftChannel;
