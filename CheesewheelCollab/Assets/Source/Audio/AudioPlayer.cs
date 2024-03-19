@@ -214,7 +214,7 @@ namespace Source.Audio
         {
             if (clip)
             {
-                clip.GetData(previousChunk, (lastClipOutputChunk + 0) * AudioConstants.SamplesChunkSize);
+                clip.GetData(previousChunk, (lastClipOutputChunk + 0) * AudioConstants.SamplesChunkSize % clip.samples);
             }
             else
             {
@@ -226,7 +226,7 @@ namespace Source.Audio
         {
             if (clip)
             {
-                clip.GetData(currentChunk, (lastClipOutputChunk + 1) * AudioConstants.SamplesChunkSize);
+                clip.GetData(currentChunk, (lastClipOutputChunk + 1) * AudioConstants.SamplesChunkSize % clip.samples);
             }
             else
             {
@@ -238,7 +238,7 @@ namespace Source.Audio
         {
             if (clip)
             {
-                clip.GetData(nextChunk, (lastClipOutputChunk + 2) * AudioConstants.SamplesChunkSize);
+                clip.GetData(nextChunk, (lastClipOutputChunk + 2) * AudioConstants.SamplesChunkSize % clip.samples);
             }
             else
             {
