@@ -101,24 +101,13 @@ namespace Source.Audio
         private float[] rightChannel = new float[AudioConstants.SamplesChunkSize];
         private void ApplyHrtf()
         {
-            // Get position
-            // Convert to azimuth and elevation angles
-            // HRTF measured at 25 azimuth points (1st dim), 50 elevation points (2nd dim),
-            // All at 5 degrees offset from the next point
+            // Todo Get position and use Hrtf to convert to indexes
 
-            // [0,11] is left side, 12 is middle, [13,24] is right side
             var azimuth = (int)(Time.time * 10 % 25);
-            // var azimuth = 24;
-            // 8 is horizontal
             var elevation = 8;
 
-            // Get correct hrtf for that azimuth and elevation
-            // Debug.Log(((MLDouble)mfr.Content["hrir_l"]).GetArray()[aIndex][eIndex].ToString()); //this would idealy print an array
-            // double[] hrir_l;
-
-            // Delay left or right channel according to ITD
+            // --- Apply ITD ---
             var delayInSamples = hrtf.GetItd(azimuth, elevation);
-            // var delayInSamples = 26; // Max ITD delay is 25-30 samples or around 0.6 ms
             var current = buffers[(lastOutputChunk - 1 + buffers.Length) % buffers.Length];
             var next = buffers[(lastOutputChunk - 0 + buffers.Length) % buffers.Length];
 
@@ -138,9 +127,15 @@ namespace Source.Audio
                 rightChannel = temp;
             }
 
-            // Convolve left and right channels against hrir_r, hrir_l
-            //HRTFProcessing.Convolve(leftChannel, hrir_l);
+            // --- Apply HRTF ---
 
+            var leftHrtf = hrtf.GetHrtf(azimuth, elevation, false);
+            var rightHrtf = hrtf.GetHrtf(azimuth, elevation, true);
+
+            // hrtf.Convolve(leftChannel, leftHrtf).AsSpan().CopyTo(leftChannel);
+            // hrtf.Convolve(rightChannel, rightHrtf).AsSpan().CopyTo(rightChannel);
+
+            // --- Copy to output ---
             // Cannot change output size, otherwise we record and consume at different rates
             for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
             {
