@@ -37,7 +37,7 @@ namespace Source.Audio
 
         private void Start()
         {
-            LoadHRTF();
+            LoadHrtf();
 
             processingBuffer = new float[AudioConstants.SamplesChunkSize * 2];
             buffers = new float[256][];
@@ -92,7 +92,7 @@ namespace Source.Audio
             samples.CopyTo(buffers[chunk % buffers.Length], 0);
         }
 
-        private void LoadHRTF()
+        private void LoadHrtf()
         {
             var path = Application.streamingAssetsPath + "/HRTFs/hrir58.mat";
             hrtf = new Hrtf(new MatFileReader(path));
