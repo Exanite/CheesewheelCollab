@@ -511,6 +511,8 @@ MonoBehaviour:
   minChunksBuffered: 5
   maxChunksBuffered: 10
   minChunksQueued: 2
+  azimuth: 0
+  elevation: 8
 --- !u!1 &619394800
 GameObject:
   m_ObjectHideFlags: 0

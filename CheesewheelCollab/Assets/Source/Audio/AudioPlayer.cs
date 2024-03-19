@@ -102,9 +102,9 @@ namespace Source.Audio
         private float[] rightChannel = new float[AudioConstants.SamplesChunkSize];
 
         [Range(0, 24)]
-        public int azimuth;
+        public int azimuth = 12;
         [Range(0, 49)]
-        public int elevation;
+        public int elevation = 8;
 
         private void ApplyHrtf()
         {
@@ -133,11 +133,41 @@ namespace Source.Audio
 
             // --- Apply HRTF ---
 
+            var originalMaxAmplitude = 0f;
+            for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
+            {
+                originalMaxAmplitude = Mathf.Max(originalMaxAmplitude, Mathf.Abs(current[i]));
+            }
+
+            var convolvedMaxAmplitude = 0f;
+
             var leftHrtf = hrtf.GetHrtf(azimuth, elevation, false);
             var rightHrtf = hrtf.GetHrtf(azimuth, elevation, true);
 
             hrtf.Convolve(leftChannel, leftHrtf).AsSpan().CopyTo(leftChannel);
             hrtf.Convolve(rightChannel, rightHrtf).AsSpan().CopyTo(rightChannel);
+
+            for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
+            {
+                convolvedMaxAmplitude = Mathf.Max(convolvedMaxAmplitude, Mathf.Abs(leftChannel[i]), Mathf.Abs(rightChannel[i]));
+            }
+
+            // Reduce to original amplitude
+            var amplitudeFactor = convolvedMaxAmplitude / originalMaxAmplitude;
+            if (originalMaxAmplitude > 1)
+            {
+                // Reduce max amplitude to 1
+                amplitudeFactor *= originalMaxAmplitude;
+            }
+
+            if (amplitudeFactor > 1)
+            {
+                for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
+                {
+                    leftChannel[i] /= amplitudeFactor;
+                    rightChannel[i] /= amplitudeFactor;
+                }
+            }
 
             // --- Copy to output ---
             // Cannot change output size, otherwise we record and consume at different rates
