@@ -508,6 +508,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   audioProvider: {fileID: 196124097}
+  clip: {fileID: 8300000, guid: f8620483aec653d40aba60cdbb607831, type: 3}
+  volume: 1
   minChunksBuffered: 5
   maxChunksBuffered: 10
   minChunksQueued: 2

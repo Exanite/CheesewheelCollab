@@ -7,19 +7,34 @@ namespace Source.Audio
 {
     public class AudioPlayer : MonoBehaviour
     {
-        [FormerlySerializedAs("recorder")]
         [Header("Dependencies")]
+        [FormerlySerializedAs("recorder")]
         [SerializeField] private AudioProvider audioProvider;
 
+        [Header("Audio Override")]
+        [SerializeField] private AudioClip clip;
+
         // See https://trello.com/c/rQ9w7TyA/26-audio-format
-        [Header("Settings")]
+        [Header("Audio Processing")]
+        [Range(0, 1)]
+        [SerializeField] private float volume = 1;
         [SerializeField] private int minChunksBuffered = 5;
         [SerializeField] private int maxChunksBuffered = 10;
         [SerializeField] private int minChunksQueued = 2;
         [SerializeField] private HrtfSubject hrtfSubject = HrtfSubject.Subject058;
 
+        [Header("Audio Position")]
+        [Range(0, 24)]
+        [SerializeField] private int azimuth = 12;
+        [Range(0, 49)]
+        [SerializeField] private int elevation = 8;
+
         private float[][] buffers;
         private float[] processingBuffer;
+
+        private float[] previousChunk = new float[AudioConstants.SamplesChunkSize];
+        private float[] currentChunk = new float[AudioConstants.SamplesChunkSize];
+        private float[] nextChunk = new float[AudioConstants.SamplesChunkSize];
 
         /// <summary>
         /// Max chunk received from AudioRecorder / network
@@ -27,9 +42,14 @@ namespace Source.Audio
         private int maxReceivedChunk;
 
         /// <summary>
-        /// Last chunk output to speakers
+        /// Last chunk output to speakers. Used if audio is from <see cref="audioProvider"/>.
         /// </summary>
-        private int lastOutputChunk;
+        private int lastProviderOutputChunk;
+
+        /// <summary>
+        /// Last chunk output to speakers. Used if audio is from <see cref="clip"/>. Kinda hacky, but oh well.
+        /// </summary>
+        private int lastClipOutputChunk;
 
         private AudioOutput output;
 
@@ -64,29 +84,44 @@ namespace Source.Audio
             }
 
             var queuedChunks = output.QueuedSamplesPerChannel / processingBuffer.Length;
-            if (queuedChunks < minChunksQueued)
+            while (queuedChunks < minChunksQueued)
             {
-                if (maxReceivedChunk - lastOutputChunk > maxChunksBuffered)
+                if (clip)
                 {
-                    lastOutputChunk = maxReceivedChunk - maxChunksBuffered;
-                }
-
-                if (maxReceivedChunk - lastOutputChunk > minChunksBuffered)
-                {
-                    lastOutputChunk++;
-
-                    //apply HRTF to audio chunk
                     ApplyHrtf();
+                    lastClipOutputChunk++;
+                }
+                else
+                {
+                    if (maxReceivedChunk - lastProviderOutputChunk > maxChunksBuffered)
+                    {
+                        lastProviderOutputChunk = maxReceivedChunk - maxChunksBuffered;
+                    }
+
+                    if (maxReceivedChunk - lastProviderOutputChunk > minChunksBuffered)
+                    {
+                        lastProviderOutputChunk++;
+
+                        //apply HRTF to audio chunk
+                        ApplyHrtf();
+                    }
                 }
 
-                // Don't modify code below when processing audio
+                // --- Don't modify code below when processing audio ---
                 for (var i = 0; i < processingBuffer.Length; i++)
                 {
-                    processingBuffer[i] = Mathf.Clamp(processingBuffer[i], -1, 1);
+                    if (Mathf.Abs(processingBuffer[i]) > 1)
+                    {
+                        processingBuffer[i] = Mathf.Clamp(processingBuffer[i], -1, 1);
+                        Debug.LogWarning("Audio signal is greater than 1");
+                    }
+                    
+                    processingBuffer[i] *= volume;
                 }
-
                 output.QueueSamples(processingBuffer);
                 processingBuffer.AsSpan().Clear();
+
+                queuedChunks = output.QueuedSamplesPerChannel / processingBuffer.Length;
             }
         }
 
@@ -106,30 +141,25 @@ namespace Source.Audio
         private float[] leftChannel = new float[AudioConstants.SamplesChunkSize];
         private float[] rightChannel = new float[AudioConstants.SamplesChunkSize];
 
-        [Range(0, 24)]
-        public int azimuth = 12;
-        [Range(0, 49)]
-        public int elevation = 8;
-
         private void ApplyHrtf()
         {
             // Todo Get position and use Hrtf to convert to indexes
 
-            // --- Get audio buffers ---
-            var previous = buffers[(lastOutputChunk - 2 + buffers.Length) % buffers.Length];
-            var current = buffers[(lastOutputChunk - 1 + buffers.Length) % buffers.Length];
-            var next = buffers[(lastOutputChunk - 0 + buffers.Length) % buffers.Length];
+            // --- Update audio buffers ---
+            UpdatePreviousChunk();
+            UpdateCurrentChunk();
+            UpdateNextChunk();
 
             // --- Apply ITD ---
             var delayInSamples = hrtf.GetItd(azimuth, elevation);
 
-            current.AsSpan().CopyTo(leftChannel);
-            current.AsSpan().CopyTo(rightChannel);
+            currentChunk.AsSpan().CopyTo(leftChannel);
+            currentChunk.AsSpan().CopyTo(rightChannel);
 
             // Add delay to start of left
-            current.AsSpan().CopyTo(rightChannel);
-            current.AsSpan().Slice(delayInSamples).CopyTo(leftChannel);
-            next.AsSpan().Slice(0, delayInSamples).CopyTo(leftChannel.AsSpan().Slice(leftChannel.Length - delayInSamples - 1));
+            currentChunk.AsSpan().CopyTo(rightChannel);
+            currentChunk.AsSpan().Slice(delayInSamples).CopyTo(leftChannel);
+            nextChunk.AsSpan().Slice(0, delayInSamples).CopyTo(leftChannel.AsSpan().Slice(leftChannel.Length - delayInSamples - 1));
 
             // Swap buffers if needed
             if (hrtf.IsRight(azimuth))
@@ -144,7 +174,7 @@ namespace Source.Audio
             var originalMaxAmplitude = 0f;
             for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
             {
-                originalMaxAmplitude = Mathf.Max(originalMaxAmplitude, Mathf.Abs(current[i]));
+                originalMaxAmplitude = Mathf.Max(originalMaxAmplitude, Mathf.Abs(currentChunk[i]));
             }
 
             var convolvedMaxAmplitude = 0f;
@@ -152,8 +182,8 @@ namespace Source.Audio
             var leftHrtf = hrtf.GetHrtf(azimuth, elevation, false);
             var rightHrtf = hrtf.GetHrtf(azimuth, elevation, true);
 
-            hrtf.Convolve(previous, current, next, leftHrtf).AsSpan().CopyTo(leftChannel);
-            hrtf.Convolve(previous, current, next, rightHrtf).AsSpan().CopyTo(rightChannel);
+            hrtf.Convolve(previousChunk, currentChunk, nextChunk, leftHrtf).AsSpan().CopyTo(leftChannel);
+            hrtf.Convolve(previousChunk, currentChunk, nextChunk, rightHrtf).AsSpan().CopyTo(rightChannel);
 
             for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
             {
@@ -184,6 +214,42 @@ namespace Source.Audio
                 // Zip left and right channels together and output
                 processingBuffer[i * 2] = leftChannel[i];
                 processingBuffer[i * 2 + 1] = rightChannel[i];
+            }
+        }
+
+        private void UpdatePreviousChunk()
+        {
+            if (clip)
+            {
+                clip.GetData(previousChunk, (lastClipOutputChunk + 0) * AudioConstants.SamplesChunkSize % clip.samples);
+            }
+            else
+            {
+                buffers[(lastProviderOutputChunk - 2 + buffers.Length) % buffers.Length].AsSpan().CopyTo(previousChunk);
+            }
+        }
+
+        private void UpdateCurrentChunk()
+        {
+            if (clip)
+            {
+                clip.GetData(currentChunk, (lastClipOutputChunk + 1) * AudioConstants.SamplesChunkSize % clip.samples);
+            }
+            else
+            {
+                buffers[(lastProviderOutputChunk - 1 + buffers.Length) % buffers.Length].AsSpan().CopyTo(currentChunk);
+            }
+        }
+
+        private void UpdateNextChunk()
+        {
+            if (clip)
+            {
+                clip.GetData(nextChunk, (lastClipOutputChunk + 2) * AudioConstants.SamplesChunkSize % clip.samples);
+            }
+            else
+            {
+                buffers[(lastProviderOutputChunk - 0 + buffers.Length) % buffers.Length].AsSpan().CopyTo(nextChunk);
             }
         }
     }

@@ -33,10 +33,9 @@ namespace Source.Audio
                 for (var elevationI = 0; elevationI < ElevationCount; elevationI++)
                 {
                     var samplesFloats = new float[HrtfSampleCount];
-                    var samplesDoubles = rawLeftHrtfs[azimuthI].AsSpan(elevationI * HrtfSampleCount, HrtfSampleCount);
                     for (var i = 0; i < HrtfSampleCount; i++)
                     {
-                        samplesFloats[i] = (float)samplesDoubles[i];
+                        samplesFloats[i] = (float)rawLeftHrtfs[azimuthI][i * ElevationCount + elevationI];
                     }
 
                     leftHrtfs[azimuthI][elevationI] = samplesFloats;
@@ -50,10 +49,9 @@ namespace Source.Audio
                 for (var elevationI = 0; elevationI < ElevationCount; elevationI++)
                 {
                     var samplesFloats = new float[HrtfSampleCount];
-                    var samplesDoubles = rawRightHrtfs[azimuthI].AsSpan(elevationI * HrtfSampleCount, HrtfSampleCount);
                     for (var i = 0; i < HrtfSampleCount; i++)
                     {
-                        samplesFloats[i] = (float)samplesDoubles[i];
+                        samplesFloats[i] = (float)rawRightHrtfs[azimuthI][i * ElevationCount + elevationI];
                     }
 
                     rightHrtfs[azimuthI][elevationI] = samplesFloats;
