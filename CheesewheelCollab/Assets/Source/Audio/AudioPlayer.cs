@@ -34,11 +34,10 @@ namespace Source.Audio
         private AudioOutput output;
 
         private Hrtf hrtf;
+        private HrtfSubject loadedSubject;
 
         private void Start()
         {
-            LoadHrtf();
-
             processingBuffer = new float[AudioConstants.SamplesChunkSize * 2];
             buffers = new float[256][];
             for (var i = 0; i < buffers.Length; i++)
@@ -58,6 +57,12 @@ namespace Source.Audio
 
         private void Update()
         {
+            if (loadedSubject != hrtfSubject)
+            {
+                LoadHrtf();
+                loadedSubject = hrtfSubject;
+            }
+
             var queuedChunks = output.QueuedSamplesPerChannel / processingBuffer.Length;
             if (queuedChunks < minChunksQueued)
             {
