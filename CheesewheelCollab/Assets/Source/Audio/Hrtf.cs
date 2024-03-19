@@ -112,5 +112,26 @@ namespace Source.Audio
         {
             throw new NotImplementedException();
         }
+
+        public float[] Convolve(float[] samples, float[] hrtf)
+        {
+            var m = (int)Math.Ceiling(hrtf.Length / 2.0);
+            var result = new float[samples.Length];
+
+            for (var i = 0; i < result.Length; i++)
+            {
+                result[i] = 0;
+                for (var j = 0; j < hrtf.Length; j++)
+                {
+                    var k = i - j + m - 1;
+                    if (k >= 0 && k < samples.Length)
+                    {
+                        result[i] += samples[k] * hrtf[j];
+                    }
+                }
+            }
+
+            return result;
+        }
     }
 }
