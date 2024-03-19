@@ -17,7 +17,7 @@ namespace Source.Audio
         /// </summary>
         public event SamplesAvailableCallback SamplesAvailable;
 
-        private void Update()
+        protected virtual void Update()
         {
             lock (pool)
             lock (queuedChunks)

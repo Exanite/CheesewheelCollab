@@ -10,10 +10,8 @@ namespace Source.Audio
         private float elapsedTime;
         private float[] samples;
 
-        protected override void Start()
+        private void Start()
         {
-            base.Start();
-
             var length = clip.samples;
             samples = new float[length];
             clip.GetData(samples, 0);
