@@ -102,17 +102,51 @@ namespace Source.Audio
                 //Debug.Log(mla.ContentToString() + "\n");
             }
 
-            Debug.Log(mfr.Content["OnR"].ContentToString() + "\n"); // OnR
-            Debug.Log(mfr.Content["OnL"].ContentToString() + "\n"); // OnL
-            Debug.Log(mfr.Content["ITD"].ContentToString() + "\n"); // ITD
-            Debug.Log(mfr.Content["hrir_r"].ContentToString() + "\n"); // hrir_r
-            Debug.Log(mfr.Content["hrir_l"].ContentToString() + "\n"); // hrir_l
+            Debug.Log(mfr.Content["OnR"].ContentToString() + "\n");
+            Debug.Log(mfr.Content["OnL"].ContentToString() + "\n");
+            Debug.Log(mfr.Content["ITD"].ContentToString() + "\n");
+            Debug.Log(mfr.Content["hrir_r"].ContentToString() + "\n");
+            Debug.Log(mfr.Content["hrir_l"].ContentToString() + "\n");
             var mld = ((MLDouble)mfr.Data[2]).GetArray();
             Debug.Log(mld[12][0]);
         }
 
         private float[] leftChannel = new float[AudioConstants.SamplesChunkSize];
         private float[] rightChannel = new float[AudioConstants.SamplesChunkSize];
+
+        public class Hrtf
+        {
+            private const int AzimuthCount = 25;
+            private const int ElevationCount = 50;
+
+            private const int ForwardAzimuth = 12;
+            private const int HorizontalAzimuth = 8;
+
+            private const int HrtfSamples = 200;
+
+            private int[][] itds;
+            private float[][][] leftHrtfs;
+            private float[][][] rightHrtfs;
+
+            public Hrtf(MatFileReader reader)
+            {
+                var rawItds = ((MLDouble)reader.Content["ITD"]).GetArray();
+                var rawLeftHrtfs = ((MLDouble)reader.Content["hrir_l"]).GetArray();
+                var rawRightHrtfs = ((MLDouble)reader.Content["hrir_r"]).GetArray();
+
+                itds = new int[AzimuthCount][];
+            }
+
+            public int GetItd(Vector3 directionToSound)
+            {
+                return 0; // Todo
+            }
+
+            public float[] GetHrtf(Vector3 directionToSound, bool isRight)
+            {
+                return new float[200]; // Todo
+            }
+        }
 
         private void ApplyHrtf()
         {
