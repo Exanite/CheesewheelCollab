@@ -1,5 +1,6 @@
 using System;
 using csmatio.io;
+using Exanite.Core.Utilities;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -99,12 +100,15 @@ namespace Source.Audio
 
         private float[] leftChannel = new float[AudioConstants.SamplesChunkSize];
         private float[] rightChannel = new float[AudioConstants.SamplesChunkSize];
+
+        [Range(0, 24)]
+        public int azimuth;
+        [Range(0, 49)]
+        public int elevation;
+
         private void ApplyHrtf()
         {
             // Todo Get position and use Hrtf to convert to indexes
-
-            var azimuth = (int)(Time.time * 10 % 25);
-            var elevation = 8;
 
             // --- Apply ITD ---
             var delayInSamples = hrtf.GetItd(azimuth, elevation);
@@ -132,8 +136,8 @@ namespace Source.Audio
             var leftHrtf = hrtf.GetHrtf(azimuth, elevation, false);
             var rightHrtf = hrtf.GetHrtf(azimuth, elevation, true);
 
-            // hrtf.Convolve(leftChannel, leftHrtf).AsSpan().CopyTo(leftChannel);
-            // hrtf.Convolve(rightChannel, rightHrtf).AsSpan().CopyTo(rightChannel);
+            hrtf.Convolve(leftChannel, leftHrtf).AsSpan().CopyTo(leftChannel);
+            hrtf.Convolve(rightChannel, rightHrtf).AsSpan().CopyTo(rightChannel);
 
             // --- Copy to output ---
             // Cannot change output size, otherwise we record and consume at different rates
