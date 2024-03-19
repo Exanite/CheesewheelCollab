@@ -104,7 +104,7 @@ namespace Source.Audio
             // HRTF measured at 25 azimuth points (1st dim), 50 elevation points (2nd dim),
             // All at 5 degrees offset from the next point
 
-            // [0,12] is left side, 13 is middle, [14,25] is right side
+            // [0,11] is left side, 12 is middle, [13,24] is right side
             var azimuth = (int)(Time.time * 10 % 25);
             // var azimuth = 24;
             // 8 is horizontal
