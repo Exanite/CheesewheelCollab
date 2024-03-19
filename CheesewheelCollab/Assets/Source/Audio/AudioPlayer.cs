@@ -16,6 +16,7 @@ namespace Source.Audio
         [SerializeField] private int minChunksBuffered = 5;
         [SerializeField] private int maxChunksBuffered = 10;
         [SerializeField] private int minChunksQueued = 2;
+        [SerializeField] private HrtfSubject hrtfSubject = HrtfSubject.Subject058;
 
         private float[][] buffers;
         private float[] processingBuffer;
@@ -93,7 +94,7 @@ namespace Source.Audio
 
         private void LoadHrtf()
         {
-            var path = Application.streamingAssetsPath + "/HRTFs/hrir58.mat";
+            var path = Application.streamingAssetsPath + $"/CIPIC/standard_hrir_database/{hrtfSubject.ToFileName()}/hrir_final.matlab";
             hrtf = new Hrtf(new MatFileReader(path));
         }
 
