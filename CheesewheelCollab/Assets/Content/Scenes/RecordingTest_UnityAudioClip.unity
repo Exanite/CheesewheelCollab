@@ -511,6 +511,7 @@ MonoBehaviour:
   minChunksBuffered: 5
   maxChunksBuffered: 10
   minChunksQueued: 2
+  hrtfSubject: 58
   azimuth: 12
   elevation: 8
 --- !u!1 &619394800
