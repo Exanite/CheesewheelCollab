@@ -11,8 +11,11 @@ namespace Source.Audio
         [FormerlySerializedAs("recorder")]
         [SerializeField] private AudioProvider audioProvider;
 
+        [Header("Audio Override")]
+        [SerializeField] private AudioClip clip;
+
         // See https://trello.com/c/rQ9w7TyA/26-audio-format
-        [Header("Settings")]
+        [Header("Audio Processing")]
         [Range(0, 1)]
         [SerializeField] private float volume = 1;
         [SerializeField] private int minChunksBuffered = 5;
@@ -20,8 +23,11 @@ namespace Source.Audio
         [SerializeField] private int minChunksQueued = 2;
         [SerializeField] private HrtfSubject hrtfSubject = HrtfSubject.Subject058;
 
-        [Header("Audio Override")]
-        [SerializeField] private AudioClip clip;
+        [Header("Audio Position")]
+        [Range(0, 24)]
+        [SerializeField] private int azimuth = 12;
+        [Range(0, 49)]
+        [SerializeField] private int elevation = 8;
 
         private float[][] buffers;
         private float[] processingBuffer;
@@ -127,11 +133,6 @@ namespace Source.Audio
 
         private float[] leftChannel = new float[AudioConstants.SamplesChunkSize];
         private float[] rightChannel = new float[AudioConstants.SamplesChunkSize];
-
-        [Range(0, 24)]
-        public int azimuth = 12;
-        [Range(0, 49)]
-        public int elevation = 8;
 
         private void ApplyHrtf()
         {
