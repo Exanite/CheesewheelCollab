@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 using UnityEngine.Pool;
 
@@ -7,6 +8,8 @@ namespace Source.Audio
 {
     public abstract class AudioProvider : MonoBehaviour
     {
+        private Thread mainThread;
+
         private ObjectPool<QueuedChunk> pool = new(() => new QueuedChunk());
         private Queue<QueuedChunk> queuedChunks = new();
 
@@ -17,7 +20,12 @@ namespace Source.Audio
         /// </summary>
         public event SamplesAvailableCallback SamplesAvailable;
 
-        private void Update()
+        protected virtual void Start()
+        {
+            mainThread = Thread.CurrentThread;
+        }
+
+        protected virtual void Update()
         {
             lock (pool)
             lock (queuedChunks)
@@ -38,6 +46,13 @@ namespace Source.Audio
             for (var i = 0; i < buffer.Length; i++)
             {
                 buffer[i] = Mathf.Clamp(buffer[i], -1, 1);
+            }
+
+            if (Thread.CurrentThread == mainThread)
+            {
+                SamplesAvailable?.Invoke(chunk, buffer);
+
+                return;
             }
 
             lock (pool)
