@@ -22,8 +22,8 @@ namespace Source.Audio
         {
             itds = ((MLDouble)reader.Content["ITD"]).GetArray();
 
-            var rawLeftHrtfs = ((MLDouble)reader.Content["hrir_l"]).GetArray();
-            var rawRightHrtfs = ((MLDouble)reader.Content["hrir_r"]).GetArray();
+            var rawLeftHrtfs = ((MLDouble)reader.Content["hrir_l"]).GetArray(); // Need to unpack and convert to float arrays
+            var rawRightHrtfs = ((MLDouble)reader.Content["hrir_r"]).GetArray(); // Need to unpack and convert to float arrays
         }
 
         public bool IsRight(int azimuth)
@@ -31,6 +31,11 @@ namespace Source.Audio
             return azimuth > ForwardAzimuth;
         }
 
+        /// <param name="directionToSound">
+        /// The local direction to the sound using Unity conventions.
+        /// <para/>
+        /// Eg: <see cref="Vector3.forward">Vector3.forward</see> corresponds to the forward direction.
+        /// </param>
         public int GetItd(Vector3 directionToSound)
         {
             return 0; // Todo
@@ -41,6 +46,11 @@ namespace Source.Audio
             return (int)itds[azimuth][elevation];
         }
 
+        /// <param name="directionToSound">
+        /// The local direction to the sound using Unity conventions.
+        /// <para/>
+        /// Eg: <see cref="Vector3.forward">Vector3.forward</see> corresponds to the forward direction.
+        /// </param>
         public float[] GetHrtf(Vector3 directionToSound, bool isRight)
         {
             return new float[HrtfSampleCount]; // Todo
