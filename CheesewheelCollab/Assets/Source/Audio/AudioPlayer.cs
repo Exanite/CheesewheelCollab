@@ -110,7 +110,12 @@ namespace Source.Audio
                 // --- Don't modify code below when processing audio ---
                 for (var i = 0; i < processingBuffer.Length; i++)
                 {
-                    processingBuffer[i] = Mathf.Clamp(processingBuffer[i], -1, 1);
+                    if (Mathf.Abs(processingBuffer[i]) > 1)
+                    {
+                        processingBuffer[i] = Mathf.Clamp(processingBuffer[i], -1, 1);
+                        Debug.LogWarning("Audio signal is greater than 1");
+                    }
+                    
                     processingBuffer[i] *= volume;
                 }
                 output.QueueSamples(processingBuffer);
