@@ -31,7 +31,7 @@ namespace Source.Audio
 
         private AudioOutput output;
 
-        private MatFileReader mfr;
+        private Hrtf hrtf;
 
         private void Start()
         {
@@ -93,22 +93,7 @@ namespace Source.Audio
         private void LoadHRTF()
         {
             var path = Application.streamingAssetsPath + "/HRTFs/hrir58.mat";
-
-            mfr = new MatFileReader(path);
-
-            Debug.Log(mfr.MatFileHeader.ToString());
-            foreach (var mla in mfr.Data)
-            {
-                //Debug.Log(mla.ContentToString() + "\n");
-            }
-
-            Debug.Log(mfr.Content["OnR"].ContentToString() + "\n");
-            Debug.Log(mfr.Content["OnL"].ContentToString() + "\n");
-            Debug.Log(mfr.Content["ITD"].ContentToString() + "\n");
-            Debug.Log(mfr.Content["hrir_r"].ContentToString() + "\n");
-            Debug.Log(mfr.Content["hrir_l"].ContentToString() + "\n");
-            var mld = ((MLDouble)mfr.Data[2]).GetArray();
-            Debug.Log(mld[12][0]);
+            hrtf = new Hrtf(new MatFileReader(path));
         }
 
         private float[] leftChannel = new float[AudioConstants.SamplesChunkSize];
@@ -134,6 +119,11 @@ namespace Source.Audio
 
                 var rawLeftHrtfs = ((MLDouble)reader.Content["hrir_l"]).GetArray();
                 var rawRightHrtfs = ((MLDouble)reader.Content["hrir_r"]).GetArray();
+            }
+
+            public bool IsRight(int azimuth)
+            {
+                return azimuth > ForwardAzimuth;
             }
 
             public int GetItd(Vector3 directionToSound)
@@ -165,17 +155,17 @@ namespace Source.Audio
             // All at 5 degrees offset from the next point
 
             // [0,12] is left side, 13 is middle, [14,25] is right side
-            // var azimuthI = (int)(Time.time * 10 % 25);
-            var azimuthI = 24;
+            var azimuth = (int)(Time.time * 10 % 25);
+            // var azimuth = 24;
             // 8 is horizontal
-            var elevationI = 8;
+            var elevation = 8;
 
             // Get correct hrtf for that azimuth and elevation
             // Debug.Log(((MLDouble)mfr.Content["hrir_l"]).GetArray()[aIndex][eIndex].ToString()); //this would idealy print an array
             // double[] hrir_l;
 
             // Delay left or right channel according to ITD
-            var delayInSamples = (int)((MLDouble)mfr.Content["ITD"]).GetArray()[azimuthI][elevationI];
+            var delayInSamples = hrtf.GetItd(azimuth, elevation);
             // var delayInSamples = 26; // Max ITD delay is 25-30 samples or around 0.6 ms
             var current = buffers[(lastOutputChunk - 1 + buffers.Length) % buffers.Length];
             var next = buffers[(lastOutputChunk - 0 + buffers.Length) % buffers.Length];
@@ -189,8 +179,7 @@ namespace Source.Audio
             next.AsSpan().Slice(0, delayInSamples).CopyTo(leftChannel.AsSpan().Slice(leftChannel.Length - delayInSamples - 1));
 
             // Swap buffers if needed
-            var addDelayToRight = azimuthI > 12;
-            if (addDelayToRight)
+            if (hrtf.IsRight(azimuth))
             {
                 var temp = leftChannel;
                 leftChannel = rightChannel;
