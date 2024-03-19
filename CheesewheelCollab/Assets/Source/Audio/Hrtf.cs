@@ -73,7 +73,7 @@ namespace Source.Audio
         /// </param>
         public int GetItd(Vector3 directionToSound)
         {
-            return 0; // Todo
+            return GetItd(GetAzimuth(directionToSound), GetElevation(directionToSound));
         }
 
         public int GetItd(int azimuth, int elevation)
@@ -81,19 +81,36 @@ namespace Source.Audio
             return (int)itds[azimuth][elevation];
         }
 
+
+        public float[] GetHrtf(Vector3 directionToSound, bool isRight)
+        {
+            return GetHrtf(GetAzimuth(directionToSound), GetElevation(directionToSound), isRight);
+        }
+
+        public float[] GetHrtf(int azimuth, int elevation, bool isRight)
+        {
+            var hrtfs = isRight ? rightHrtfs : leftHrtfs;
+            return hrtfs[azimuth][elevation];
+        }
+
         /// <param name="directionToSound">
         /// The local direction to the sound using Unity conventions.
         /// <para/>
         /// Eg: <see cref="Vector3.forward">Vector3.forward</see> corresponds to the forward direction.
         /// </param>
-        public float[] GetHrtf(Vector3 directionToSound, bool isRight)
+        public int GetAzimuth(Vector3 directionToSound)
         {
-            return new float[HrtfSampleCount]; // Todo
+            throw new NotImplementedException();
         }
 
-        public float[] GetHrtf(int azimuth, int elevation, bool isRight)
+        /// <param name="directionToSound">
+        /// The local direction to the sound using Unity conventions.
+        /// <para/>
+        /// Eg: <see cref="Vector3.forward">Vector3.forward</see> corresponds to the forward direction.
+        /// </param>
+        public int GetElevation(Vector3 directionToSound)
         {
-            return new float[HrtfSampleCount]; // Todo
+            throw new NotImplementedException();
         }
     }
 }
