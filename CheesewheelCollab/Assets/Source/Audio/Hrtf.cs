@@ -11,7 +11,7 @@ namespace Source.Audio
         public const int ElevationCount = 50;
 
         public const int ForwardAzimuth = 12;
-        public const int HorizontalAzimuth = 8;
+        public const int HorizontalElevation = 8;
 
         public const int HrtfSampleCount = 200;
 
