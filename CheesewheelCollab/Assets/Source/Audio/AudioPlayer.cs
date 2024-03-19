@@ -84,7 +84,7 @@ namespace Source.Audio
             }
 
             var queuedChunks = output.QueuedSamplesPerChannel / processingBuffer.Length;
-            if (queuedChunks < minChunksQueued)
+            while (queuedChunks < minChunksQueued)
             {
                 if (clip)
                 {
@@ -115,6 +115,8 @@ namespace Source.Audio
                 }
                 output.QueueSamples(processingBuffer);
                 processingBuffer.AsSpan().Clear();
+
+                queuedChunks = output.QueuedSamplesPerChannel / processingBuffer.Length;
             }
         }
 
