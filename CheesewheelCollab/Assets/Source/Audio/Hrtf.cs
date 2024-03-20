@@ -140,7 +140,16 @@ namespace Source.Audio
         /// </param>
         public int GetElevation(Vector3 directionToSound)
         {
-            throw new NotImplementedException();
+            Vector2 planarDirection = new Vector2(directionToSound.normalized.x, directionToSound.normalized.z);
+            double degreesRotated = Math.Round(Math.Acos((double)Vector2.Dot(planarDirection, Vector2.up)) * 180 / Math.PI);
+            if (degreesRotated > 90)
+			{
+                return 40; //behind you
+			}
+            else
+			{
+                return 8; //ahead of you
+			}
         }
 
         private float[] convolveResult = new float[AudioConstants.SamplesChunkSize];
