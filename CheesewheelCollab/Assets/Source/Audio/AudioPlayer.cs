@@ -111,10 +111,15 @@ namespace Source.Audio
         [Range(0, 49)]
         public int elevation = 8;
 
+        float degreesRotated = -40;
+
         private void ApplyHrtf()
         {
             // Todo Get position and use Hrtf to convert to indexes
-
+            Vector3 testrot = Quaternion.AngleAxis(degreesRotated, Vector3.up) * Vector3.forward;
+            Debug.Log("degreesRotated: " + degreesRotated);
+            int azim = hrtf.GetAzimuth(testrot);
+            Debug.Log("azim: " + azim);
             // --- Get audio buffers ---
             var previous = buffers[(lastOutputChunk - 2 + buffers.Length) % buffers.Length];
             var current = buffers[(lastOutputChunk - 1 + buffers.Length) % buffers.Length];
