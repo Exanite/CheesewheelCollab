@@ -5,22 +5,25 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/Content/Scenes/MainMenu.unity
     guid: 08bf7178a9a3a6341a9b01d38ba8c350
-  - enabled: 1
+  - enabled: 0
     path: Assets/Content/Scenes/Entry.unity
     guid: 88edafc915110a8408de00a31a3f9f1e
-  - enabled: 1
+  - enabled: 0
     path: Assets/Content/Scenes/Client.unity
     guid: 7c1c382557d39ca4a93c22b69725b4b8
-  - enabled: 1
+  - enabled: 0
     path: Assets/Content/Scenes/Server.unity
     guid: 20dd5959b006099478ee37c55971ddd8
-  - enabled: 1
+  - enabled: 0
     path: Assets/Content/Scenes/RecordingTest_Sdl.unity
     guid: 8f96c21b78fc9024cbde73e270d6a21e
-  - enabled: 1
+  - enabled: 0
     path: Assets/Content/Scenes/RecordingTest_Unity.unity
     guid: 8c9cfa26abfee488c85f1582747f6a02
+  - enabled: 1
+    path: Assets/Content/Scenes/RecordingTest_UnityAudioClip.unity
+    guid: 5758cc73ad200c04da099bcf71c97914
   m_configObjects: {}
