@@ -28,8 +28,6 @@ namespace Source.Audio
         [SerializeField] private int azimuth = 12;
         [Range(0, 49)]
         [SerializeField] private int elevation = 8;
-        private int addend = 1;
-        private bool pacer = false;
 
         private float[][] buffers;
         private float[] processingBuffer;
@@ -143,11 +141,17 @@ namespace Source.Audio
         private float[] leftChannel = new float[AudioConstants.SamplesChunkSize];
         private float[] rightChannel = new float[AudioConstants.SamplesChunkSize];
 
+        private int addend = 1;
+        private int pacer = 0;
         private void ApplyHrtf()
         {
             // Todo Get position and use Hrtf to convert to indexes
-            pacer = !pacer;
-            if (pacer) azimuth += addend;
+            pacer++;
+            if (pacer > 8)
+            {
+                azimuth += addend;
+                pacer = 0;
+            };
             if (azimuth == 25)
 			{
                 azimuth = 24;
@@ -160,8 +164,6 @@ namespace Source.Audio
                 elevation = 8;
                 addend = 1;
 			}
-
-
 
             // --- Update audio buffers ---
             UpdatePreviousChunk();
