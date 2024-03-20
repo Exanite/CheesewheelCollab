@@ -22,10 +22,13 @@ namespace Source.Networking
         [FormerlySerializedAs("audioRecorder")]
         [SerializeField] private AudioProvider audioProvider;
 
-        [Header("Audio")]
+        [Header("Audio Processing")]
+        [Range(0, 1)]
+        [SerializeField] private float volume = 1;
         [SerializeField] private int minChunksBuffered = 5;
         [SerializeField] private int maxChunksBuffered = 10;
         [SerializeField] private int minChunksQueued = 2;
+        [SerializeField] private HrtfSubject hrtfSubject = HrtfSubject.Subject058;
 
         [Inject] private IEnumerable<IPacketHandler> packetHandlers;
         [Inject] private Network coreNetwork;
