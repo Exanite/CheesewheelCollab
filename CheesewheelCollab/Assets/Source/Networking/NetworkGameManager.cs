@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using csmatio.io;
 using Cysharp.Threading.Tasks;
 using Exanite.Networking;
 using Exanite.Networking.Channels;
@@ -28,7 +29,8 @@ namespace Source.Networking
         [SerializeField] private int minChunksBuffered = 5;
         [SerializeField] private int maxChunksBuffered = 10;
         [SerializeField] private int minChunksQueued = 2;
-        [SerializeField] private HrtfSubject hrtfSubject = HrtfSubject.Subject058;
+        [FormerlySerializedAs("hrtfSubject")]
+        [SerializeField] private HrtfSubject selectedSubject = HrtfSubject.Subject058;
 
         [Inject] private IEnumerable<IPacketHandler> packetHandlers;
         [Inject] private Network coreNetwork;
@@ -106,7 +108,16 @@ namespace Source.Networking
         {
             if (network.IsClient)
             {
+                if (clientData.LoadedSubject != selectedSubject)
+                {
+                    var path = Application.streamingAssetsPath + $"/CIPIC/standard_hrir_database/{selectedSubject.ToFileName()}/hrir_final.matlab";
+                    clientData.Hrtf = new Hrtf(new MatFileReader(path));
+
+                    clientData.LoadedSubject = selectedSubject;
+                }
+
                 var processingBuffer = clientData.ProcessingBuffer;
+                var outputBuffer = clientData.OutputBuffer;
                 var output = clientData.Output;
                 var queuedChunks = clientData.Output.QueuedSamplesPerChannel / AudioConstants.SamplesChunkSize;
                 if (queuedChunks < minChunksQueued)
@@ -127,10 +138,10 @@ namespace Source.Networking
                         {
                             player.Audio.LastOutputChunk++;
 
-                            var currentBuffer = player.Audio.Buffers[player.Audio.LastOutputChunk % player.Audio.Buffers.Length];
-                            for (var i = 0; i < currentBuffer.Length; i++)
+                            ApplyHrtf(player);
+                            for (var i = 0; i < processingBuffer.Length; i++)
                             {
-                                processingBuffer[i] += currentBuffer[i];
+                                outputBuffer[i] += processingBuffer[i];
                             }
                         }
                     }
@@ -143,6 +154,95 @@ namespace Source.Networking
                     output.QueueSamples(processingBuffer);
                     processingBuffer.AsSpan().Clear();
                 }
+            }
+        }
+
+        private void ApplyHrtf(Player player)
+        {
+            // --- Get variables and buffers ---
+            var previousChunk = clientData.PreviousChunk;
+            var currentChunk = clientData.CurrentChunk;
+            var nextChunk = clientData.NextChunk;
+            var leftChannel = clientData.LeftChannel;
+            var rightChannel = clientData.RightChannel;
+            var processingBuffer = clientData.ProcessingBuffer;
+            var hrtf = clientData.Hrtf;
+
+            // --- Calculate direction ---
+            var directionToSound = player.GameObject.transform.position - clientData.LocalPlayer.GameObject.transform.position;
+            var azimuth = clientData.Hrtf.GetAzimuth(directionToSound);
+            var elevation = clientData.Hrtf.GetElevation(directionToSound);
+
+            // --- Update audio buffers ---
+            var buffers = player.Audio.Buffers;
+            buffers[(player.Audio.LastOutputChunk - 2 + buffers.Length) % buffers.Length].AsSpan().CopyTo(previousChunk);
+            buffers[(player.Audio.LastOutputChunk - 1 + buffers.Length) % buffers.Length].AsSpan().CopyTo(currentChunk);
+            buffers[(player.Audio.LastOutputChunk - 0 + buffers.Length) % buffers.Length].AsSpan().CopyTo(nextChunk);
+
+            // --- Apply ITD ---
+            var delayInSamples = hrtf.GetItd(azimuth, elevation);
+
+            currentChunk.AsSpan().CopyTo(leftChannel);
+            currentChunk.AsSpan().CopyTo(rightChannel);
+
+            // Add delay to start of left
+            currentChunk.AsSpan().CopyTo(rightChannel);
+            currentChunk.AsSpan().Slice(delayInSamples).CopyTo(leftChannel);
+            nextChunk.AsSpan().Slice(0, delayInSamples).CopyTo(leftChannel.AsSpan().Slice(leftChannel.Length - delayInSamples - 1));
+
+            // Swap buffers if needed
+            if (hrtf.IsRight(azimuth))
+            {
+                var temp = leftChannel;
+                leftChannel = rightChannel;
+                rightChannel = temp;
+            }
+
+            // --- Apply HRTF ---
+
+            var originalMaxAmplitude = 0f;
+            for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
+            {
+                originalMaxAmplitude = Mathf.Max(originalMaxAmplitude, Mathf.Abs(currentChunk[i]));
+            }
+
+            var convolvedMaxAmplitude = 0f;
+
+            var leftHrtf = hrtf.GetHrtf(azimuth, elevation, false);
+            var rightHrtf = hrtf.GetHrtf(azimuth, elevation, true);
+
+            hrtf.Convolve(previousChunk, currentChunk, nextChunk, leftHrtf).AsSpan().CopyTo(leftChannel);
+            hrtf.Convolve(previousChunk, currentChunk, nextChunk, rightHrtf).AsSpan().CopyTo(rightChannel);
+
+            for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
+            {
+                convolvedMaxAmplitude = Mathf.Max(convolvedMaxAmplitude, Mathf.Abs(leftChannel[i]), Mathf.Abs(rightChannel[i]));
+            }
+
+            // Reduce to original amplitude
+            var amplitudeFactor = convolvedMaxAmplitude / originalMaxAmplitude;
+            if (originalMaxAmplitude > 1)
+            {
+                // Reduce max amplitude to 1
+                amplitudeFactor *= originalMaxAmplitude;
+            }
+
+            if (amplitudeFactor > 1)
+            {
+                for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
+                {
+                    leftChannel[i] /= amplitudeFactor;
+                    rightChannel[i] /= amplitudeFactor;
+                }
+            }
+
+            // --- Copy to output ---
+            // Cannot change output size, otherwise we record and consume at different rates
+            for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
+            {
+                // Zip left and right channels together and output
+                processingBuffer[i * 2] = leftChannel[i];
+                processingBuffer[i * 2 + 1] = rightChannel[i];
             }
         }
 
