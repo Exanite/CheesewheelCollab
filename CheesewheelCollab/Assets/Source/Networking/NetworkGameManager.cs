@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using csmatio.io;
 using Cysharp.Threading.Tasks;
+using Exanite.Core.Numbers;
+using Exanite.Core.Utilities;
 using Exanite.Networking;
 using Exanite.Networking.Channels;
 using Exanite.SceneManagement;
@@ -170,6 +172,8 @@ namespace Source.Networking
 
             // --- Calculate direction ---
             var directionToSound = player.GameObject.transform.position - clientData.LocalPlayer.GameObject.transform.position;
+            directionToSound = directionToSound.Swizzle(Vector3Swizzle.XZY); // Need to swap Y and Z values
+
             var azimuth = clientData.Hrtf.GetAzimuth(directionToSound);
             var elevation = clientData.Hrtf.GetElevation(directionToSound);
 
