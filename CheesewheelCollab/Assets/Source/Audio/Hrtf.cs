@@ -186,7 +186,7 @@ namespace Source.Audio
             return convolveResult;
         }
 
-        public void Apply(ApplyHrtfOptions options)
+        public float[] Apply(ApplyHrtfOptions options)
         {
             // --- Get variables and buffers ---
             var offsetToSound = options.OffsetToSound;
@@ -266,6 +266,8 @@ namespace Source.Audio
                 resultsBuffer[i * 2] = leftChannel[i];
                 resultsBuffer[i * 2 + 1] = rightChannel[i];
             }
+
+            return resultsBuffer;
         }
     }
 }

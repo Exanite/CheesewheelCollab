@@ -520,9 +520,25 @@ PrefabInstance:
       value: NetworkGameManager
       objectReference: {fileID: 0}
     - target: {fileID: 5769629615450017856, guid: 1c3f4a1e570c84442bba26b9c7859175, type: 3}
-      propertyPath: audioRecorder
+      propertyPath: audioProvider
       value: 
       objectReference: {fileID: 668876558602589985}
+    - target: {fileID: 5769629615450017856, guid: 1c3f4a1e570c84442bba26b9c7859175, type: 3}
+      propertyPath: audioRecorder
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 5769629615450017856, guid: 1c3f4a1e570c84442bba26b9c7859175, type: 3}
+      propertyPath: minChunksQueued
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 5769629615450017856, guid: 1c3f4a1e570c84442bba26b9c7859175, type: 3}
+      propertyPath: maxChunksBuffered
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 5769629615450017856, guid: 1c3f4a1e570c84442bba26b9c7859175, type: 3}
+      propertyPath: minChunksBuffered
+      value: 7
+      objectReference: {fileID: 0}
     - target: {fileID: 6437581932009978290, guid: 1c3f4a1e570c84442bba26b9c7859175, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -585,9 +601,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 668876558602589984}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5e573488700c46ed972f1b8af2542184, type: 3}
+  m_Script: {fileID: 11500000, guid: 46e1eee2591b48ad8d3ac84e6f3075e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  clip: {fileID: 8300000, guid: f8620483aec653d40aba60cdbb607831, type: 3}
+  volume: 0.334
 --- !u!1001 &7711695695087616259
 PrefabInstance:
   m_ObjectHideFlags: 0
