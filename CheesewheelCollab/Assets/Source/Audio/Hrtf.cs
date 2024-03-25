@@ -1,7 +1,9 @@
 using System;
 using csmatio.io;
 using csmatio.types;
+using Exanite.Core.Numbers;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Source.Audio
 {
@@ -80,12 +82,12 @@ namespace Source.Audio
         }
 
 
-        public float[] GetHrtf(Vector3 directionToSound, bool isRight)
+        public float[] GetHrir(Vector3 directionToSound, bool isRight)
         {
-            return GetHrtf(GetAzimuth(directionToSound), GetElevation(directionToSound), isRight);
+            return GetHrir(GetAzimuth(directionToSound), GetElevation(directionToSound), isRight);
         }
 
-        public float[] GetHrtf(int azimuth, int elevation, bool isRight)
+        public float[] GetHrir(int azimuth, int elevation, bool isRight)
         {
             var hrtfs = isRight ? rightHrtfs : leftHrtfs;
             return hrtfs[azimuth][elevation];
@@ -182,6 +184,88 @@ namespace Source.Audio
             }
 
             return convolveResult;
+        }
+
+        public void Apply(ApplyHrtfOptions options)
+        {
+            // --- Get variables and buffers ---
+            var offsetToSound = options.OffsetToSound;
+            var previousChunk = options.PreviousChunk;
+            var currentChunk = options.CurrentChunk;
+            var nextChunk = options.NextChunk;
+            var leftChannel = options.LeftChannel;
+            var rightChannel = options.RightChannel;
+            var resultsBuffer = options.ResultsBuffer;
+
+            // --- Calculate direction ---
+            var azimuth = GetAzimuth(offsetToSound);
+            var elevation = GetElevation(offsetToSound);
+
+            // --- Apply ITD ---
+            var delayInSamples = GetItd(azimuth, elevation);
+
+            currentChunk.AsSpan().CopyTo(leftChannel);
+            currentChunk.AsSpan().CopyTo(rightChannel);
+
+            // Add delay to start of left
+            currentChunk.AsSpan().CopyTo(rightChannel);
+            currentChunk.AsSpan().Slice(delayInSamples).CopyTo(leftChannel);
+            nextChunk.AsSpan().Slice(0, delayInSamples).CopyTo(leftChannel.AsSpan().Slice(leftChannel.Length - delayInSamples - 1));
+
+            // Swap buffers if needed
+            if (IsRight(azimuth))
+            {
+                var temp = leftChannel;
+                leftChannel = rightChannel;
+                rightChannel = temp;
+            }
+
+            // --- Apply HRIR ---
+
+            var originalMaxAmplitude = 0f;
+            for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
+            {
+                originalMaxAmplitude = Mathf.Max(originalMaxAmplitude, Mathf.Abs(currentChunk[i]));
+            }
+
+            var convolvedMaxAmplitude = 0f;
+
+            var leftHrir = GetHrir(azimuth, elevation, false);
+            var rightHrir = GetHrir(azimuth, elevation, true);
+
+            Convolve(previousChunk, currentChunk, nextChunk, leftHrir).AsSpan().CopyTo(leftChannel);
+            Convolve(previousChunk, currentChunk, nextChunk, rightHrir).AsSpan().CopyTo(rightChannel);
+
+            for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
+            {
+                convolvedMaxAmplitude = Mathf.Max(convolvedMaxAmplitude, Mathf.Abs(leftChannel[i]), Mathf.Abs(rightChannel[i]));
+            }
+
+            // Reduce to original amplitude
+            var amplitudeFactor = convolvedMaxAmplitude / originalMaxAmplitude;
+            if (originalMaxAmplitude > 1)
+            {
+                // Reduce max amplitude to 1
+                amplitudeFactor *= originalMaxAmplitude;
+            }
+
+            if (amplitudeFactor > 1)
+            {
+                for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
+                {
+                    leftChannel[i] /= amplitudeFactor;
+                    rightChannel[i] /= amplitudeFactor;
+                }
+            }
+
+            // --- Copy to output ---
+            // Cannot change output size, otherwise we record and consume at different rates
+            for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
+            {
+                // Zip left and right channels together and output
+                resultsBuffer[i * 2] = leftChannel[i];
+                resultsBuffer[i * 2 + 1] = rightChannel[i];
+            }
         }
     }
 }

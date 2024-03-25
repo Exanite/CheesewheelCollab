@@ -212,8 +212,8 @@ namespace Source.Networking
 
             var convolvedMaxAmplitude = 0f;
 
-            var leftHrtf = hrtf.GetHrtf(azimuth, elevation, false);
-            var rightHrtf = hrtf.GetHrtf(azimuth, elevation, true);
+            var leftHrtf = hrtf.GetHrir(azimuth, elevation, false);
+            var rightHrtf = hrtf.GetHrir(azimuth, elevation, true);
 
             hrtf.Convolve(previousChunk, currentChunk, nextChunk, leftHrtf).AsSpan().CopyTo(leftChannel);
             hrtf.Convolve(previousChunk, currentChunk, nextChunk, rightHrtf).AsSpan().CopyTo(rightChannel);
