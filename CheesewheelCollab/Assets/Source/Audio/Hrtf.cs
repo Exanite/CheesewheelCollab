@@ -105,8 +105,6 @@ namespace Source.Audio
                 degreesRotated *= -1;
             }
 
-            Debug.Log("get azimuth degrees: " + degreesRotated);
-
             // [ -80 -65 -55 -45:5:45 55 65 80 ]
             if (Math.Abs(degreesRotated) > 90)
 			{
