@@ -112,12 +112,7 @@ namespace Source.Audio
                 // --- Don't modify code below when processing audio ---
                 for (var i = 0; i < outputBuffer.Length; i++)
                 {
-                    if (Mathf.Abs(outputBuffer[i]) > 1)
-                    {
-                        outputBuffer[i] = Mathf.Clamp(outputBuffer[i], -1, 1);
-                        Debug.LogWarning("Audio signal is greater than 1");
-                    }
-                    
+                    outputBuffer[i] = Mathf.Clamp(outputBuffer[i], -1, 1);
                     outputBuffer[i] *= volume;
                 }
                 output.QueueSamples(outputBuffer);

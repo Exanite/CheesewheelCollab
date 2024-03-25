@@ -151,6 +151,7 @@ namespace Source.Networking
                     for (var i = 0; i < outputBuffer.Length; i++)
                     {
                         outputBuffer[i] = Mathf.Clamp(outputBuffer[i], -1, 1);
+                        outputBuffer[i] *= volume;
                     }
                     output.QueueSamples(outputBuffer);
                     outputBuffer.AsSpan().Clear();
