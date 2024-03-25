@@ -1,9 +1,7 @@
 using System;
 using csmatio.io;
 using csmatio.types;
-using Exanite.Core.Numbers;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Source.Audio
 {
@@ -15,48 +13,48 @@ namespace Source.Audio
         public const int ForwardAzimuth = 12;
         public const int HorizontalElevation = 8;
 
-        public const int HrtfSampleCount = 200;
+        public const int HrirSampleCount = 200;
 
         private double[][] itds;
-        private float[][][] leftHrtfs;
-        private float[][][] rightHrtfs;
+        private float[][][] leftHrirs;
+        private float[][][] rightHrirs;
 
         public Hrtf(MatFileReader reader)
         {
             itds = ((MLDouble)reader.Content["ITD"]).GetArray();
 
-            var rawLeftHrtfs = ((MLDouble)reader.Content["hrir_l"]).GetArray();
-            var rawRightHrtfs = ((MLDouble)reader.Content["hrir_r"]).GetArray();
+            var rawLeftHrirs = ((MLDouble)reader.Content["hrir_l"]).GetArray();
+            var rawRightHrirs = ((MLDouble)reader.Content["hrir_r"]).GetArray();
 
-            leftHrtfs = new float[AzimuthCount][][];
+            leftHrirs = new float[AzimuthCount][][];
             for (var azimuthI = 0; azimuthI < AzimuthCount; azimuthI++)
             {
-                leftHrtfs[azimuthI] = new float[ElevationCount][];
+                leftHrirs[azimuthI] = new float[ElevationCount][];
                 for (var elevationI = 0; elevationI < ElevationCount; elevationI++)
                 {
-                    var samplesFloats = new float[HrtfSampleCount];
-                    for (var i = 0; i < HrtfSampleCount; i++)
+                    var samplesFloats = new float[HrirSampleCount];
+                    for (var i = 0; i < HrirSampleCount; i++)
                     {
-                        samplesFloats[i] = (float)rawLeftHrtfs[azimuthI][i * ElevationCount + elevationI];
+                        samplesFloats[i] = (float)rawLeftHrirs[azimuthI][i * ElevationCount + elevationI];
                     }
 
-                    leftHrtfs[azimuthI][elevationI] = samplesFloats;
+                    leftHrirs[azimuthI][elevationI] = samplesFloats;
                 }
             }
-            
-            rightHrtfs = new float[AzimuthCount][][];
+
+            rightHrirs = new float[AzimuthCount][][];
             for (var azimuthI = 0; azimuthI < AzimuthCount; azimuthI++)
             {
-                rightHrtfs[azimuthI] = new float[ElevationCount][];
+                rightHrirs[azimuthI] = new float[ElevationCount][];
                 for (var elevationI = 0; elevationI < ElevationCount; elevationI++)
                 {
-                    var samplesFloats = new float[HrtfSampleCount];
-                    for (var i = 0; i < HrtfSampleCount; i++)
+                    var samplesFloats = new float[HrirSampleCount];
+                    for (var i = 0; i < HrirSampleCount; i++)
                     {
-                        samplesFloats[i] = (float)rawRightHrtfs[azimuthI][i * ElevationCount + elevationI];
+                        samplesFloats[i] = (float)rawRightHrirs[azimuthI][i * ElevationCount + elevationI];
                     }
 
-                    rightHrtfs[azimuthI][elevationI] = samplesFloats;
+                    rightHrirs[azimuthI][elevationI] = samplesFloats;
                 }
             }
         }
@@ -89,8 +87,8 @@ namespace Source.Audio
 
         public float[] GetHrir(int azimuth, int elevation, bool isRight)
         {
-            var hrtfs = isRight ? rightHrtfs : leftHrtfs;
-            return hrtfs[azimuth][elevation];
+            var hrirs = isRight ? rightHrirs : leftHrirs;
+            return hrirs[azimuth][elevation];
         }
 
         /// <param name="directionToSound">
