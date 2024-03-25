@@ -98,35 +98,37 @@ namespace Source.Audio
         /// </param>
         public int GetAzimuth(Vector3 directionToSound)
         {
-            Vector2 planarDirection = new Vector2(directionToSound.normalized.x, directionToSound.normalized.z);
-            double degreesRotated = Math.Round(Math.Acos((double)Vector2.Dot(planarDirection, Vector2.up)) * 180 / Math.PI);
+            var planarDirection = new Vector2(directionToSound.normalized.x, directionToSound.normalized.z);
+            var degreesRotated = Mathf.Round(Mathf.Acos(Vector2.Dot(planarDirection, Vector2.up)) * 180f / Mathf.PI);
             if (Vector3.Cross(planarDirection, Vector3.forward).y >= 0)
             {
                 degreesRotated *= -1;
             }
 
             // [ -80 -65 -55 -45:5:45 55 65 80 ]
-            if (Math.Abs(degreesRotated) > 90)
-			{
+            if (Mathf.Abs(degreesRotated) > 90)
+            {
                 if (degreesRotated > 0)
+                {
                     degreesRotated = 180 - degreesRotated;
+                }
                 else
-				{
+                {
                     degreesRotated = -180 - degreesRotated;
                 }
-			}
+            }
 
-            if (degreesRotated < -72.5) return 0;
+            if (degreesRotated < -72.5f) return 0;
             if (degreesRotated < -60)   return 1;
             if (degreesRotated < -50)   return 2;
             if (degreesRotated < -40)   return 3;
 
-            if (degreesRotated > 72.5)  return 24;
+            if (degreesRotated > 72.5f)  return 24;
             if (degreesRotated > 60)    return 23;
             if (degreesRotated > 50)    return 22;
             if (degreesRotated > 40)    return 21;
 
-            return (int)Math.Round(degreesRotated / 5.0) + 12;
+            return Mathf.RoundToInt(degreesRotated / 5) + 12;
         }
 
         /// <param name="directionToSound">
@@ -136,16 +138,16 @@ namespace Source.Audio
         /// </param>
         public int GetElevation(Vector3 directionToSound)
         {
-            Vector2 planarDirection = new Vector2(directionToSound.normalized.x, directionToSound.normalized.z);
-            double degreesRotated = Math.Round(Math.Acos((double)Vector2.Dot(planarDirection, Vector2.up)) * 180 / Math.PI);
+            var planarDirection = new Vector2(directionToSound.normalized.x, directionToSound.normalized.z);
+            double degreesRotated = Mathf.Round(Mathf.Acos(Vector2.Dot(planarDirection, Vector2.up)) * 180 / Mathf.PI);
             if (degreesRotated > 90)
-			{
-                return 40; //behind you
-			}
+            {
+                return 40; // Behind you
+            }
             else
-			{
-                return 8; //ahead of you
-			}
+            {
+                return 8; // Ahead of you
+            }
         }
 
         private float[] convolveResult = new float[AudioConstants.SamplesChunkSize];
@@ -156,7 +158,7 @@ namespace Source.Audio
         /// </remarks>
         public float[] Convolve(float[] previous, float[] current, float[] next, float[] hrtf)
         {
-            var m = (int)Math.Ceiling(hrtf.Length / 2.0);
+            var m = Mathf.CeilToInt(hrtf.Length / 2f);
             for (var i = 0; i < convolveResult.Length; i++)
             {
                 convolveResult[i] = 0;
