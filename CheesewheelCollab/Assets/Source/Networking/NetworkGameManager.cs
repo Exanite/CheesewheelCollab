@@ -150,8 +150,8 @@ namespace Source.Networking
                     // Don't modify code below when processing audio
                     for (var i = 0; i < outputBuffer.Length; i++)
                     {
-                        outputBuffer[i] = Mathf.Clamp(outputBuffer[i], -1, 1);
                         outputBuffer[i] *= volume;
+                        outputBuffer[i] = Mathf.Clamp(outputBuffer[i], -1, 1);
                     }
                     output.QueueSamples(outputBuffer);
                     outputBuffer.AsSpan().Clear();
