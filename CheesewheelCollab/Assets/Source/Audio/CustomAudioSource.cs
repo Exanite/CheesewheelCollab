@@ -8,7 +8,6 @@ namespace Source.Audio
     {
         [Header("Required")]
         [SerializeField] private AudioClip clip;
-        [SerializeField] private AudioPlayer player;
 
         [Header("Settings")]
         [Range(0, 1)]
@@ -40,12 +39,18 @@ namespace Source.Audio
             Assert.AreEqual(1, Clip.channels);
             Assert.AreEqual(AudioConstants.SampleRate, Clip.frequency);
 
-            player.AudioSources.Add(this);
+            foreach (var player in FindObjectsOfType<AudioPlayer>())
+            {
+                player.AudioSources.Add(this);
+            }
         }
 
         private void OnDisable()
         {
-            player.AudioSources.Remove(this);
+            foreach (var player in FindObjectsOfType<AudioPlayer>())
+            {
+                player.AudioSources.Remove(this);
+            }
         }
 
         public bool Advance()
