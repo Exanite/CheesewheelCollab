@@ -14,9 +14,11 @@ namespace Source.Audio
             recording = Microphone.Start(null, true, 10, AudioConstants.SampleRate);
         }
 
-        private void Update()
+        protected override void Update()
         {
             ReadSamples();
+
+            base.Update();
         }
 
         private void ReadSamples()
