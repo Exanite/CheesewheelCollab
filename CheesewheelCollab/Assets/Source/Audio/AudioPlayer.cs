@@ -101,7 +101,7 @@ namespace Source.Audio
                         var results = ApplyHrtf((source.transform.position - transform.position).Swizzle(Vector3Swizzle.XZY));
                         for (var i = 0; i < results.Length; i++)
                         {
-                            outputBuffer[i] += results[i];
+                            outputBuffer[i] += results[i] * source.Volume;
                         }
                     }
                     else
