@@ -23,12 +23,6 @@ namespace Source.Audio
         [SerializeField] private int minChunksQueued = 2;
         [SerializeField] private HrtfSubject hrtfSubject = HrtfSubject.Subject058;
 
-        [Header("Audio Position")]
-        [Range(0, 24)]
-        [SerializeField] private int azimuth = 12;
-        [Range(0, 49)]
-        [SerializeField] private int elevation = 8;
-
         private float[][] buffers;
 
         private float[] previousChunk = new float[AudioConstants.SamplesChunkSize];
