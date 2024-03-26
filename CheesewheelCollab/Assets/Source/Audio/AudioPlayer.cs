@@ -25,8 +25,6 @@ namespace Source.Audio
         [Space]
         [SerializeField] private HrtfSubject hrtfSubject = HrtfSubject.Subject058;
 
-        public HashSet<CustomAudioSource> AudioSources { get; set; } = new();
-
         private float[][] buffers;
 
         private float[] previousChunk = new float[AudioConstants.SamplesChunkSize];
@@ -47,6 +45,10 @@ namespace Source.Audio
 
         private Hrtf hrtf;
         private HrtfSubject previousHrtfSubject;
+
+        private List<CustomAudioSource> audioSourcesToDestroy = new();
+
+        public HashSet<CustomAudioSource> AudioSources { get; set; } = new();
 
         private void Start()
         {
@@ -106,7 +108,7 @@ namespace Source.Audio
                     }
                     else
                     {
-                        Destroy(source.gameObject);
+                        audioSourcesToDestroy.Add(source);
                     }
 
                     if (maxReceivedChunk - lastProviderOutputChunk > maxChunksBuffered)
@@ -128,6 +130,11 @@ namespace Source.Audio
                             outputBuffer[i] += results[i];
                         }
                     }
+                }
+
+                foreach (var source in audioSourcesToDestroy)
+                {
+                    Destroy(source.gameObject);
                 }
 
                 if (audioProvider)
