@@ -1,57 +1,10 @@
 using System;
 using csmatio.io;
 using UnityEngine;
-using UnityEngine.Assertions;
 using UnityEngine.Serialization;
 
 namespace Source.Audio
 {
-    public class ActiveAudioClip
-    {
-        public AudioClip Clip { get; set; }
-
-        public float Volume { get; set; } = 1;
-        public Vector3 Position { get; set; }
-
-        public bool Loop { get; set; }
-        public int Chunk { get; set; }
-
-        public ActiveAudioClip(AudioClip clip)
-        {
-            Assert.AreEqual(1, clip.channels);
-            Assert.AreEqual(AudioConstants.SampleRate, clip.frequency);
-
-            Clip = clip;
-        }
-
-        public bool Advance()
-        {
-            Chunk++;
-
-            if (!Loop && Chunk * AudioConstants.SamplesChunkSize > Clip.samples)
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        public void GetPrevious(float[] buffer)
-        {
-            Clip.GetData(buffer, (Chunk + 0) * AudioConstants.SamplesChunkSize % Clip.samples);
-        }
-
-        public void GetCurrent(float[] buffer)
-        {
-            Clip.GetData(buffer, (Chunk + 1) * AudioConstants.SamplesChunkSize % Clip.samples);
-        }
-
-        public void GetNext(float[] buffer)
-        {
-            Clip.GetData(buffer, (Chunk + 2) * AudioConstants.SamplesChunkSize % Clip.samples);
-        }
-    }
-
     public class AudioPlayer : MonoBehaviour
     {
         [Header("Dependencies")]
@@ -78,6 +31,7 @@ namespace Source.Audio
 
         private float[] leftChannel = new float[AudioConstants.SamplesChunkSize];
         private float[] rightChannel = new float[AudioConstants.SamplesChunkSize];
+        private float[] resultsBuffer = new float[AudioConstants.SamplesChunkSize * 2];
         private float[] outputBuffer = new float[AudioConstants.SamplesChunkSize * 2];
 
         /// <summary>
@@ -89,11 +43,6 @@ namespace Source.Audio
         /// Last chunk output to speakers. Used if audio is from <see cref="audioProvider"/>.
         /// </summary>
         private int lastProviderOutputChunk;
-
-        /// <summary>
-        /// Last chunk output to speakers. Used if audio is from <see cref="clip"/>. Kinda hacky, but oh well.
-        /// </summary>
-        private int lastClipOutputChunk;
 
         private AudioOutput output;
 
@@ -129,12 +78,7 @@ namespace Source.Audio
             var queuedChunks = output.QueuedSamplesPerChannel / outputBuffer.Length;
             while (queuedChunks < minChunksQueued)
             {
-                if (clip)
-                {
-                    ApplyHrtf();
-                    lastClipOutputChunk++;
-                }
-                else
+                if (audioProvider)
                 {
                     if (maxReceivedChunk - lastProviderOutputChunk > maxChunksBuffered)
                     {
@@ -145,8 +89,15 @@ namespace Source.Audio
                     {
                         lastProviderOutputChunk++;
 
-                        //apply HRTF to audio chunk
-                        ApplyHrtf();
+                        buffers[(lastProviderOutputChunk - 2 + buffers.Length) % buffers.Length].AsSpan().CopyTo(previousChunk);
+                        buffers[(lastProviderOutputChunk - 1 + buffers.Length) % buffers.Length].AsSpan().CopyTo(currentChunk);
+                        buffers[(lastProviderOutputChunk - 0 + buffers.Length) % buffers.Length].AsSpan().CopyTo(nextChunk);
+                        var results = ApplyHrtf(new Vector3(Mathf.Cos(-Time.time), 0, Mathf.Sin(-Time.time)));
+
+                        for (var i = 0; i < results.Length; i++)
+                        {
+                            outputBuffer[i] += results[i];
+                        }
                     }
                 }
 
@@ -176,12 +127,9 @@ namespace Source.Audio
             hrtf = new Hrtf(new MatFileReader(path));
         }
 
-        private void ApplyHrtf()
+        private float[] ApplyHrtf(Vector3 offsetToSound)
         {
-            var offsetToSound = new Vector3(Mathf.Cos(-Time.time), 0, Mathf.Sin(-Time.time));
-
-            // --- Update audio buffers ---
-            var applyOptions = new ApplyHrtfOptions
+            return hrtf.Apply(new ApplyHrtfOptions
             {
                 OffsetToSound = offsetToSound,
 
@@ -190,51 +138,8 @@ namespace Source.Audio
                 NextChunk = nextChunk,
                 LeftChannel = leftChannel,
                 RightChannel = rightChannel,
-                ResultsBuffer = outputBuffer,
-            };
-
-            // --- Update audio buffers ---
-            UpdatePreviousChunk();
-            UpdateCurrentChunk();
-            UpdateNextChunk();
-
-            hrtf.Apply(applyOptions);
-        }
-
-        private void UpdatePreviousChunk()
-        {
-            if (clip)
-            {
-                clip.GetData(previousChunk, (lastClipOutputChunk + 0) * AudioConstants.SamplesChunkSize % clip.samples);
-            }
-            else
-            {
-                buffers[(lastProviderOutputChunk - 2 + buffers.Length) % buffers.Length].AsSpan().CopyTo(previousChunk);
-            }
-        }
-
-        private void UpdateCurrentChunk()
-        {
-            if (clip)
-            {
-                clip.GetData(currentChunk, (lastClipOutputChunk + 1) * AudioConstants.SamplesChunkSize % clip.samples);
-            }
-            else
-            {
-                buffers[(lastProviderOutputChunk - 1 + buffers.Length) % buffers.Length].AsSpan().CopyTo(currentChunk);
-            }
-        }
-
-        private void UpdateNextChunk()
-        {
-            if (clip)
-            {
-                clip.GetData(nextChunk, (lastClipOutputChunk + 2) * AudioConstants.SamplesChunkSize % clip.samples);
-            }
-            else
-            {
-                buffers[(lastProviderOutputChunk - 0 + buffers.Length) % buffers.Length].AsSpan().CopyTo(nextChunk);
-            }
+                ResultsBuffer = resultsBuffer,
+            });
         }
     }
 }
