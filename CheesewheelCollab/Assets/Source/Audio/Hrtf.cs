@@ -205,14 +205,12 @@ namespace Source.Audio
             var rightDelay = IsRight(azimuth) ? 0 : -delayInSamples;
 
             // --- Apply HRIR and ITD ---
-
+            // Calculate original max amplitude
             var originalMaxAmplitude = 0f;
             for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
             {
                 originalMaxAmplitude = Mathf.Max(originalMaxAmplitude, Mathf.Abs(currentChunk[i]));
             }
-
-            var convolvedMaxAmplitude = 0f;
 
             var leftHrir = GetHrir(azimuth, elevation, false);
             var rightHrir = GetHrir(azimuth, elevation, true);
@@ -220,6 +218,8 @@ namespace Source.Audio
             Convolve(previousChunk, currentChunk, nextChunk, leftHrir, leftDelay).AsSpan().CopyTo(leftChannel);
             Convolve(previousChunk, currentChunk, nextChunk, rightHrir, rightDelay).AsSpan().CopyTo(rightChannel);
 
+            // Calculate max amplitude after convolution
+            var convolvedMaxAmplitude = 0f;
             for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
             {
                 convolvedMaxAmplitude = Mathf.Max(convolvedMaxAmplitude, Mathf.Abs(leftChannel[i]), Mathf.Abs(rightChannel[i]));
