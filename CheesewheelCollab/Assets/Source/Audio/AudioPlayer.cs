@@ -137,7 +137,7 @@ namespace Source.Audio
 
         private void ApplyHrtf()
         {
-            var offsetToSound = new Vector3(Mathf.Cos(Time.time), 0, Mathf.Sin(Time.time));
+            var offsetToSound = new Vector3(Mathf.Cos(-Time.time), 0, Mathf.Sin(-Time.time));
 
             // --- Update audio buffers ---
             var applyOptions = new ApplyHrtfOptions
