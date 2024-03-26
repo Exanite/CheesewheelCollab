@@ -156,7 +156,7 @@ namespace Source.Audio
         /// This function was taken from the Accord Framework, under the LGPL License.
         /// https://github.com/accord-net/framework/blob/1ab0cc0ba55bcc3d46f20e7bbe7224b58cd01854/Sources/Accord.Math/Matrix/Matrix.Common.cs#L1937
         /// </remarks>
-        public float[] Convolve(float[] previous, float[] current, float[] next, float[] hrtf)
+        public float[] Convolve(float[] previous, float[] current, float[] next, float[] hrtf, int offset = 0)
         {
             var m = Mathf.CeilToInt(hrtf.Length / 2f);
             for (var i = 0; i < convolveResult.Length; i++)
@@ -164,7 +164,7 @@ namespace Source.Audio
                 convolveResult[i] = 0;
                 for (var j = 0; j < hrtf.Length; j++)
                 {
-                    var k = i - j + m - 1;
+                    var k = i - j + m - 1 + offset;
 
                     if (k < 0)
                     {
@@ -199,26 +199,12 @@ namespace Source.Audio
             var azimuth = GetAzimuth(offsetToSound);
             var elevation = GetElevation(offsetToSound);
 
-            // --- Apply ITD ---
+            // --- Calculate ITD ---
             var delayInSamples = GetItd(azimuth, elevation);
+            var leftDelay = IsRight(azimuth) ? -delayInSamples : 0;
+            var rightDelay = IsRight(azimuth) ? 0 : -delayInSamples;
 
-            currentChunk.AsSpan().CopyTo(leftChannel);
-            currentChunk.AsSpan().CopyTo(rightChannel);
-
-            // Add delay to start of left
-            currentChunk.AsSpan().CopyTo(rightChannel);
-            currentChunk.AsSpan().Slice(delayInSamples).CopyTo(leftChannel);
-            nextChunk.AsSpan().Slice(0, delayInSamples).CopyTo(leftChannel.AsSpan().Slice(leftChannel.Length - delayInSamples - 1));
-
-            // Swap buffers if needed
-            if (IsRight(azimuth))
-            {
-                var temp = leftChannel;
-                leftChannel = rightChannel;
-                rightChannel = temp;
-            }
-
-            // --- Apply HRIR ---
+            // --- Apply HRIR and ITD ---
 
             var originalMaxAmplitude = 0f;
             for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
@@ -231,8 +217,8 @@ namespace Source.Audio
             var leftHrir = GetHrir(azimuth, elevation, false);
             var rightHrir = GetHrir(azimuth, elevation, true);
 
-            Convolve(previousChunk, currentChunk, nextChunk, leftHrir).AsSpan().CopyTo(leftChannel);
-            Convolve(previousChunk, currentChunk, nextChunk, rightHrir).AsSpan().CopyTo(rightChannel);
+            Convolve(previousChunk, currentChunk, nextChunk, leftHrir, leftDelay).AsSpan().CopyTo(leftChannel);
+            Convolve(previousChunk, currentChunk, nextChunk, rightHrir, rightDelay).AsSpan().CopyTo(rightChannel);
 
             for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
             {
