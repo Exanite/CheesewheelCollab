@@ -7,11 +7,9 @@ namespace Source.Audio
 {
     public class AudioPlayer : MonoBehaviour
     {
-        [Header("Dependencies")]
+        [Header("Audio")]
         [FormerlySerializedAs("recorder")]
         [SerializeField] private AudioProvider audioProvider;
-
-        [Header("Audio Override")]
         [SerializeField] private AudioClip clip;
 
         // See https://trello.com/c/rQ9w7TyA/26-audio-format
@@ -21,6 +19,8 @@ namespace Source.Audio
         [SerializeField] private int minChunksBuffered = 5;
         [SerializeField] private int maxChunksBuffered = 10;
         [SerializeField] private int minChunksQueued = 2;
+
+        [Space]
         [SerializeField] private HrtfSubject hrtfSubject = HrtfSubject.Subject058;
 
         private float[][] buffers;
@@ -34,20 +34,15 @@ namespace Source.Audio
         private float[] resultsBuffer = new float[AudioConstants.SamplesChunkSize * 2];
         private float[] outputBuffer = new float[AudioConstants.SamplesChunkSize * 2];
 
-        /// <summary>
-        /// Max chunk received from AudioRecorder / network
-        /// </summary>
         private int maxReceivedChunk;
-
-        /// <summary>
-        /// Last chunk output to speakers. Used if audio is from <see cref="audioProvider"/>.
-        /// </summary>
         private int lastProviderOutputChunk;
 
         private AudioOutput output;
 
+        private AudioProvider previousAudioProvider;
+
         private Hrtf hrtf;
-        private HrtfSubject loadedSubject;
+        private HrtfSubject previousHrtfSubject;
 
         private void Start()
         {
@@ -56,8 +51,6 @@ namespace Source.Audio
             {
                 buffers[i] = new float[AudioConstants.SamplesChunkSize];
             }
-
-            audioProvider.SamplesAvailable += OnSamplesAvailable;
 
             output = new AudioOutput(AudioConstants.SampleRate, 2);
         }
@@ -69,10 +62,25 @@ namespace Source.Audio
 
         private void Update()
         {
-            if (loadedSubject != hrtfSubject)
+            if (audioProvider != previousAudioProvider)
+            {
+                if (previousAudioProvider)
+                {
+                    previousAudioProvider.SamplesAvailable -= OnSamplesAvailable;
+                }
+
+                if (audioProvider)
+                {
+                    audioProvider.SamplesAvailable += OnSamplesAvailable;
+                }
+
+                previousAudioProvider = audioProvider;
+            }
+
+            if (hrtfSubject != previousHrtfSubject)
             {
                 LoadHrtf();
-                loadedSubject = hrtfSubject;
+                previousHrtfSubject = hrtfSubject;
             }
 
             var queuedChunks = output.QueuedSamplesPerChannel / outputBuffer.Length;
