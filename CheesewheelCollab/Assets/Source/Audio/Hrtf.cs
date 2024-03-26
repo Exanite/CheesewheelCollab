@@ -230,7 +230,7 @@ namespace Source.Audio
             // Cannot change output size, otherwise we record and consume at different rates
             for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
             {
-                // Zip left and right channels together and output
+                // Zip left and right channels together
                 resultsBuffer[i * 2] = leftChannel[i];
                 resultsBuffer[i * 2 + 1] = rightChannel[i];
             }
