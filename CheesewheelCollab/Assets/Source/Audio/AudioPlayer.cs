@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
 using csmatio.io;
+using Exanite.Core.Numbers;
+using Exanite.Core.Utilities;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -10,7 +13,6 @@ namespace Source.Audio
         [Header("Audio")]
         [FormerlySerializedAs("recorder")]
         [SerializeField] private AudioProvider audioProvider;
-        [SerializeField] private AudioClip clip;
 
         // See https://trello.com/c/rQ9w7TyA/26-audio-format
         [Header("Audio Processing")]
@@ -22,6 +24,8 @@ namespace Source.Audio
 
         [Space]
         [SerializeField] private HrtfSubject hrtfSubject = HrtfSubject.Subject058;
+
+        public HashSet<CustomAudioSource> AudioSources { get; set; } = new();
 
         private float[][] buffers;
 
@@ -86,6 +90,46 @@ namespace Source.Audio
             var queuedChunks = output.QueuedSamplesPerChannel / outputBuffer.Length;
             while (queuedChunks < minChunksQueued)
             {
+                foreach (var source in AudioSources)
+                {
+                    if (source.Advance())
+                    {
+                        source.GetPrevious(previousChunk);
+                        source.GetCurrent(currentChunk);
+                        source.GetNext(nextChunk);
+
+                        var results = ApplyHrtf((source.transform.position - transform.position).Swizzle(Vector3Swizzle.XZY));
+                        for (var i = 0; i < results.Length; i++)
+                        {
+                            outputBuffer[i] += results[i];
+                        }
+                    }
+                    else
+                    {
+                        Destroy(source.gameObject);
+                    }
+
+                    if (maxReceivedChunk - lastProviderOutputChunk > maxChunksBuffered)
+                    {
+                        lastProviderOutputChunk = maxReceivedChunk - maxChunksBuffered;
+                    }
+
+                    if (maxReceivedChunk - lastProviderOutputChunk > minChunksBuffered)
+                    {
+                        lastProviderOutputChunk++;
+
+                        buffers[(lastProviderOutputChunk - 2 + buffers.Length) % buffers.Length].AsSpan().CopyTo(previousChunk);
+                        buffers[(lastProviderOutputChunk - 1 + buffers.Length) % buffers.Length].AsSpan().CopyTo(currentChunk);
+                        buffers[(lastProviderOutputChunk - 0 + buffers.Length) % buffers.Length].AsSpan().CopyTo(nextChunk);
+
+                        var results = ApplyHrtf(new Vector3(Mathf.Cos(-Time.time), 0, Mathf.Sin(-Time.time)));
+                        for (var i = 0; i < results.Length; i++)
+                        {
+                            outputBuffer[i] += results[i];
+                        }
+                    }
+                }
+
                 if (audioProvider)
                 {
                     if (maxReceivedChunk - lastProviderOutputChunk > maxChunksBuffered)
