@@ -64,25 +64,9 @@ namespace Source.Audio
             return azimuth > ForwardAzimuth;
         }
 
-        /// <param name="directionToSound">
-        /// The local direction to the sound using Unity conventions.
-        /// <para/>
-        /// Eg: <see cref="Vector3.forward">Vector3.forward</see> corresponds to the forward direction.
-        /// </param>
-        public int GetItd(Vector3 directionToSound)
-        {
-            return GetItd(GetAzimuth(directionToSound), GetElevation(directionToSound));
-        }
-
         public int GetItd(int azimuth, int elevation)
         {
             return (int)itds[azimuth][elevation];
-        }
-
-
-        public float[] GetHrir(Vector3 directionToSound, bool isRight)
-        {
-            return GetHrir(GetAzimuth(directionToSound), GetElevation(directionToSound), isRight);
         }
 
         public float[] GetHrir(int azimuth, int elevation, bool isRight)
