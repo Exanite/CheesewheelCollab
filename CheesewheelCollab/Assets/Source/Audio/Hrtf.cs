@@ -222,7 +222,7 @@ namespace Source.Audio
             var convolvedMaxAmplitude = 0f;
             for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
             {
-                convolvedMaxAmplitude = Mathf.Max(convolvedMaxAmplitude, Mathf.Abs(leftChannel[i]), Mathf.Abs(rightChannel[i]));
+                convolvedMaxAmplitude = Mathf.Max(convolvedMaxAmplitude, Mathf.Max(Mathf.Abs(leftChannel[i]), Mathf.Abs(rightChannel[i])));
             }
 
             // Reduce to original amplitude
