@@ -13,6 +13,9 @@ namespace Source.Audio
         [Range(0, 1)]
         [SerializeField] private float volume = 1;
         [SerializeField] private bool loop;
+        [SerializeField] private AnimationCurve attenuationCurve;
+        [SerializeField] private float attenuationStart;
+        [SerializeField] private float attenuationEnd;
 
         private int chunk;
 
@@ -32,6 +35,24 @@ namespace Source.Audio
         {
             get => loop;
             set => loop = value;
+        }
+
+        public AnimationCurve AttenuationCurve
+        {
+            get => attenuationCurve;
+            set => attenuationCurve = value;
+        }
+
+        public float AttenuationStart
+        {
+            get => attenuationStart;
+            set => attenuationStart = value;
+        }
+
+        public float AttenuationEnd
+        {
+            get => attenuationEnd;
+            set => attenuationEnd = value;
         }
 
         private void OnEnable()
