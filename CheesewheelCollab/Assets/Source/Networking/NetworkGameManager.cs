@@ -34,6 +34,11 @@ namespace Source.Networking
         [FormerlySerializedAs("hrtfSubject")]
         [SerializeField] private HrtfSubject selectedSubject = HrtfSubject.Subject058;
 
+        [Header("Audio Attenuation")]
+        [SerializeField] private AnimationCurve attenuationCurve;
+        [SerializeField] private float attenuationStart;
+        [SerializeField] private float attenuationEnd;
+
         [Inject] private IEnumerable<IPacketHandler> packetHandlers;
         [Inject] private Network coreNetwork;
         [Inject] private IChanneledNetwork network;
@@ -167,6 +172,9 @@ namespace Source.Networking
             var applyOptions = new ApplyHrtfOptions
             {
                 OffsetToSound = offsetToSound,
+                AttenuationCurve = attenuationCurve,
+                AttenuationStart = attenuationStart,
+                AttenuationEnd = attenuationEnd,
 
                 PreviousChunk = clientData.PreviousChunk,
                 CurrentChunk = clientData.CurrentChunk,

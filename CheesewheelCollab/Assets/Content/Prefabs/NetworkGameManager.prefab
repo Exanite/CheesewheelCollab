@@ -47,3 +47,35 @@ MonoBehaviour:
   playerPrefab: {fileID: 8157500971742464581, guid: 74632881762b63d498dfba37eeb5b7bd, type: 3}
   localPlayerPrefab: {fileID: 4693499474009405174, guid: 47ad692fe41fb9443a7c7d2eaf224203, type: 3}
   mainMenuScene: {fileID: 11400000, guid: 574c0ef2d169b6a43b211072fbd837ff, type: 2}
+  audioProvider: {fileID: 0}
+  volume: 1
+  minChunksBuffered: 7
+  maxChunksBuffered: 12
+  minChunksQueued: 6
+  selectedSubject: 58
+  attenuationCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  attenuationStart: 1
+  attenuationEnd: 3

@@ -522,22 +522,10 @@ PrefabInstance:
     - target: {fileID: 5769629615450017856, guid: 1c3f4a1e570c84442bba26b9c7859175, type: 3}
       propertyPath: audioProvider
       value: 
-      objectReference: {fileID: 668876558602589985}
+      objectReference: {fileID: 668876558602589988}
     - target: {fileID: 5769629615450017856, guid: 1c3f4a1e570c84442bba26b9c7859175, type: 3}
       propertyPath: audioRecorder
       value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 5769629615450017856, guid: 1c3f4a1e570c84442bba26b9c7859175, type: 3}
-      propertyPath: minChunksQueued
-      value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 5769629615450017856, guid: 1c3f4a1e570c84442bba26b9c7859175, type: 3}
-      propertyPath: maxChunksBuffered
-      value: 12
-      objectReference: {fileID: 0}
-    - target: {fileID: 5769629615450017856, guid: 1c3f4a1e570c84442bba26b9c7859175, type: 3}
-      propertyPath: minChunksBuffered
-      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 6437581932009978290, guid: 1c3f4a1e570c84442bba26b9c7859175, type: 3}
       propertyPath: m_LocalPosition.x
@@ -585,14 +573,14 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 2690644353089015413, guid: 1c3f4a1e570c84442bba26b9c7859175, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 668876558602589985}
+      addedObject: {fileID: 668876558602589988}
   m_SourcePrefab: {fileID: 100100000, guid: 1c3f4a1e570c84442bba26b9c7859175, type: 3}
 --- !u!1 &668876558602589984 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2690644353089015413, guid: 1c3f4a1e570c84442bba26b9c7859175, type: 3}
   m_PrefabInstance: {fileID: 668876558602589983}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &668876558602589985
+--- !u!114 &668876558602589988
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -601,11 +589,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 668876558602589984}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 46e1eee2591b48ad8d3ac84e6f3075e0, type: 3}
+  m_Script: {fileID: 11500000, guid: 5e573488700c46ed972f1b8af2542184, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  clip: {fileID: 8300000, guid: f8620483aec653d40aba60cdbb607831, type: 3}
-  volume: 0.334
 --- !u!1001 &7711695695087616259
 PrefabInstance:
   m_ObjectHideFlags: 0
