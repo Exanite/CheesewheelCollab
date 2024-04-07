@@ -100,7 +100,7 @@ namespace Source.Audio
                         source.GetCurrent(currentChunk);
                         source.GetNext(nextChunk);
 
-                        var results = ApplyHrtf((source.transform.position - transform.position).Swizzle(Vector3Swizzle.XZY));
+                        var results = ApplyHrtf((source.transform.position - transform.position).Swizzle(Vector3Swizzle.XZY), source.AttenuationCurve, source.AttenuationStart, source.AttenuationEnd);
                         for (var i = 0; i < results.Length; i++)
                         {
                             outputBuffer[i] += results[i] * source.Volume;
@@ -186,11 +186,14 @@ namespace Source.Audio
             hrtf = new Hrtf(new MatFileReader(path));
         }
 
-        private float[] ApplyHrtf(Vector3 offsetToSound)
+        private float[] ApplyHrtf(Vector3 offsetToSound, AnimationCurve attenuationCurve = null, float attenuationStart = 0, float attenuationEnd = 0)
         {
             return hrtf.Apply(new ApplyHrtfOptions
             {
                 OffsetToSound = offsetToSound,
+                AttenuationCurve = attenuationCurve,
+                AttenuationStart = attenuationStart,
+                AttenuationEnd = attenuationEnd,
 
                 PreviousChunk = previousChunk,
                 CurrentChunk = currentChunk,
