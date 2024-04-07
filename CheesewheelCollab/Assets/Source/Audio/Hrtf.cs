@@ -1,6 +1,7 @@
 using System;
 using csmatio.io;
 using csmatio.types;
+using Exanite.Core.Utilities;
 using UnityEngine;
 
 namespace Source.Audio
@@ -172,12 +173,27 @@ namespace Source.Audio
         {
             // --- Get variables and buffers ---
             var offsetToSound = options.OffsetToSound;
+            var attenuationCurve = options.AttenuationCurve;
+            var attenuationStart = options.AttenuationStart;
+            var attenuationEnd = options.AttenuationEnd;
+
             var previousChunk = options.PreviousChunk;
             var currentChunk = options.CurrentChunk;
             var nextChunk = options.NextChunk;
             var leftChannel = options.LeftChannel;
             var rightChannel = options.RightChannel;
             var resultsBuffer = options.ResultsBuffer;
+
+            // --- Calculate attenuation ---
+            var distance = offsetToSound.magnitude;
+            var attenuation = attenuationCurve.Evaluate(MathUtility.Remap(Mathf.Clamp(distance, attenuationStart, attenuationEnd), attenuationStart, attenuationEnd, 1, 0));
+
+            if (attenuation < 0.001f)
+            {
+                resultsBuffer.AsSpan().Clear();
+
+                return resultsBuffer;
+            }
 
             // --- Calculate direction ---
             var azimuth = GetAzimuth(offsetToSound);
@@ -189,18 +205,19 @@ namespace Source.Audio
             var rightDelay = IsRight(azimuth) ? 0 : -delayInSamples;
 
             // --- Apply HRIR and ITD ---
+            var leftHrir = GetHrir(azimuth, elevation, false);
+            var rightHrir = GetHrir(azimuth, elevation, true);
+
+            Convolve(previousChunk, currentChunk, nextChunk, leftHrir, leftDelay).AsSpan().CopyTo(leftChannel);
+            Convolve(previousChunk, currentChunk, nextChunk, rightHrir, rightDelay).AsSpan().CopyTo(rightChannel);
+
+            // --- Normalize volume ---
             // Calculate original max amplitude
             var originalMaxAmplitude = 0f;
             for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
             {
                 originalMaxAmplitude = Mathf.Max(originalMaxAmplitude, Mathf.Abs(currentChunk[i]));
             }
-
-            var leftHrir = GetHrir(azimuth, elevation, false);
-            var rightHrir = GetHrir(azimuth, elevation, true);
-
-            Convolve(previousChunk, currentChunk, nextChunk, leftHrir, leftDelay).AsSpan().CopyTo(leftChannel);
-            Convolve(previousChunk, currentChunk, nextChunk, rightHrir, rightDelay).AsSpan().CopyTo(rightChannel);
 
             // Calculate max amplitude after convolution
             var convolvedMaxAmplitude = 0f;
@@ -226,13 +243,13 @@ namespace Source.Audio
                 }
             }
 
-            // --- Copy to output ---
+            // --- Copy to output and apply attenuation ---
             // Cannot change output size, otherwise we record and consume at different rates
             for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
             {
                 // Zip left and right channels together
-                resultsBuffer[i * 2] = leftChannel[i];
-                resultsBuffer[i * 2 + 1] = rightChannel[i];
+                resultsBuffer[i * 2] = leftChannel[i] * attenuation;
+                resultsBuffer[i * 2 + 1] = rightChannel[i] * attenuation;
             }
 
             return resultsBuffer;
