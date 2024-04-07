@@ -211,37 +211,38 @@ namespace Source.Audio
             Convolve(previousChunk, currentChunk, nextChunk, leftHrir, leftDelay).AsSpan().CopyTo(leftChannel);
             Convolve(previousChunk, currentChunk, nextChunk, rightHrir, rightDelay).AsSpan().CopyTo(rightChannel);
 
-            // --- Normalize volume ---
-            // Calculate original max amplitude
-            var originalMaxAmplitude = 0f;
-            for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
-            {
-                originalMaxAmplitude = Mathf.Max(originalMaxAmplitude, Mathf.Abs(currentChunk[i]));
-            }
-
-            // Calculate max amplitude after convolution
-            var convolvedMaxAmplitude = 0f;
-            for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
-            {
-                convolvedMaxAmplitude = Mathf.Max(convolvedMaxAmplitude, Mathf.Max(Mathf.Abs(leftChannel[i]), Mathf.Abs(rightChannel[i])));
-            }
-
-            // Reduce to original amplitude
-            var amplitudeFactor = convolvedMaxAmplitude / originalMaxAmplitude;
-            if (originalMaxAmplitude > 1)
-            {
-                // Reduce max amplitude to 1
-                amplitudeFactor *= originalMaxAmplitude;
-            }
-
-            if (amplitudeFactor > 1)
-            {
-                for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
-                {
-                    leftChannel[i] /= amplitudeFactor;
-                    rightChannel[i] /= amplitudeFactor;
-                }
-            }
+            // ! This is disabled because it causes popping and not actually needed
+            // // --- Normalize volume ---
+            // // Calculate original max amplitude
+            // var originalMaxAmplitude = 0f;
+            // for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
+            // {
+            //     originalMaxAmplitude = Mathf.Max(originalMaxAmplitude, Mathf.Abs(currentChunk[i]));
+            // }
+            //
+            // // Calculate max amplitude after convolution
+            // var convolvedMaxAmplitude = 0f;
+            // for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
+            // {
+            //     convolvedMaxAmplitude = Mathf.Max(convolvedMaxAmplitude, Mathf.Max(Mathf.Abs(leftChannel[i]), Mathf.Abs(rightChannel[i])));
+            // }
+            //
+            // // Reduce to original amplitude
+            // var amplitudeFactor = convolvedMaxAmplitude / originalMaxAmplitude;
+            // if (originalMaxAmplitude > 1)
+            // {
+            //     // Reduce max amplitude to 1
+            //     amplitudeFactor *= originalMaxAmplitude;
+            // }
+            //
+            // if (amplitudeFactor > 1)
+            // {
+            //     for (var i = 0; i < AudioConstants.SamplesChunkSize; i++)
+            //     {
+            //         leftChannel[i] /= amplitudeFactor;
+            //         rightChannel[i] /= amplitudeFactor;
+            //     }
+            // }
 
             // --- Copy to output and apply attenuation ---
             // Cannot change output size, otherwise we record and consume at different rates
