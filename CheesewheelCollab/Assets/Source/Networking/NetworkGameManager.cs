@@ -19,8 +19,8 @@ namespace Source.Networking
     public class NetworkGameManager : MonoBehaviour
     {
         [Header("Dependencies")]
-        [SerializeField] private GameObject playerPrefab;
-        [SerializeField] private GameObject localPlayerPrefab;
+        [SerializeField] private PlayerCharacter playerPrefab;
+        [SerializeField] private PlayerCharacter localPlayerPrefab;
         [SerializeField] private SceneIdentifier mainMenuScene;
         [FormerlySerializedAs("audioRecorder")]
         [SerializeField] private AudioProvider audioProvider;
@@ -102,7 +102,7 @@ namespace Source.Networking
         {
             if (network.IsClient && clientData.LocalPlayer != null)
             {
-                playerUpdatePacketChannel.Message.Position = clientData.LocalPlayer.GameObject.transform.position;
+                playerUpdatePacketChannel.Message.Position = clientData.LocalPlayer.Character.transform.position;
                 playerUpdatePacketChannel.Write();
                 foreach (var connection in network.Connections)
                 {
@@ -166,7 +166,7 @@ namespace Source.Networking
 
         private float[] ApplyHrtf(Player player)
         {
-            var offsetToSound = player.GameObject.transform.position - clientData.LocalPlayer.GameObject.transform.position;
+            var offsetToSound = player.Character.transform.position - clientData.LocalPlayer.Character.transform.position;
             offsetToSound = offsetToSound.Swizzle(Vector3Swizzle.XZY); // Need to swap Y and Z values
 
             var applyOptions = new ApplyHrtfOptions
@@ -254,9 +254,11 @@ namespace Source.Networking
             var player = new Player
             {
                 Id = message.PlayerId,
-                GameObject = Instantiate(playerPrefabToInstantiate),
+                Character = Instantiate(playerPrefabToInstantiate),
                 Audio = new Player.PlayerAudioData(),
             };
+
+            player.Character.Player = player;
 
             players.Add(player.Id, player);
 
@@ -271,7 +273,7 @@ namespace Source.Networking
             Debug.Log($"Player left: {message.PlayerId}");
 
             players.Remove(message.PlayerId, out var removedPlayer);
-            Destroy(removedPlayer.GameObject);
+            Destroy(removedPlayer.Character.gameObject);
         }
 
         private void OnPlayerUpdatePacket(NetworkConnection connection, PlayerUpdatePacket message)
@@ -298,7 +300,7 @@ namespace Source.Networking
                 if (message.PlayerId != clientData.LocalPlayer.Id && players.TryGetValue(message.PlayerId, out var player))
                 {
                     player.Position = message.Position;
-                    player.GameObject.transform.position = message.Position;
+                    player.Character.transform.position = message.Position;
                 }
             }
         }
