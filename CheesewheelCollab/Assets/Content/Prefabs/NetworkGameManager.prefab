@@ -77,5 +77,5 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  attenuationStart: 1
-  attenuationEnd: 3
+  attenuationStart: 3
+  attenuationEnd: 6
