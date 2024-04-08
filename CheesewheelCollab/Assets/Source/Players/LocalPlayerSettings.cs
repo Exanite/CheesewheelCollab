@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Source.Player
+namespace Source.Players
 {
     public class LocalPlayerSettings : MonoBehaviour
     {

@@ -11,12 +11,17 @@ namespace Source.Networking
         public Vector2 Position;
 
         /// <summary>
-        /// Null on server.
+        /// Invalid on server.
+        /// </summary>
+        public float Volume = 1;
+
+        /// <summary>
+        /// Invalid on server.
         /// </summary>
         public PlayerCharacter Character;
 
         /// <summary>
-        /// Null on server.
+        /// Invalid on server.
         /// </summary>
         public PlayerAudioData Audio;
 

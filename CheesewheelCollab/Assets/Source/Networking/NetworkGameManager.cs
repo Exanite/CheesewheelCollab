@@ -8,11 +8,13 @@ using Exanite.Networking;
 using Exanite.Networking.Channels;
 using Exanite.SceneManagement;
 using Source.Audio;
-using Source.Player;
+using Source.Players;
+using Source.UserInterface;
 using UniDi;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
+using UnityEngine.UI;
 using Network = Exanite.Networking.Network;
 
 namespace Source.Networking
@@ -25,6 +27,10 @@ namespace Source.Networking
         [SerializeField] private SceneIdentifier mainMenuScene;
         [FormerlySerializedAs("audioRecorder")]
         [SerializeField] private AudioProvider audioProvider;
+        [SerializeField] private VolumeControlDisplay localPlayerVolumeControl;
+        [SerializeField] private VolumeControlDisplay volumeControlPrefab;
+        [SerializeField] private RectTransform volumeControlParent;
+        [SerializeField] private Toggle hearSelfToggle;
 
         [Header("Audio Processing")]
         [Range(0, 1)]
@@ -40,15 +46,18 @@ namespace Source.Networking
         [SerializeField] private float attenuationStart;
         [SerializeField] private float attenuationEnd;
 
+        [Inject] private IInstantiator instantiator;
         [Inject] private IEnumerable<IPacketHandler> packetHandlers;
         [Inject] private Network coreNetwork;
         [Inject] private IChanneledNetwork network;
         [Inject] private LocalPlayerSettings localPlayerSettings;
 
-        private ClientData clientData;
+        public ClientData ClientData { get; private set; }
 
         // Connection ID is the same as Player ID
         private Dictionary<int, Player> players = new();
+        private Dictionary<int, VolumeControlDisplay> playerVolumeControls = new();
+        private List<int> playerVolumeControlsToRemove = new();
 
         private INetworkChannel<PlayerJoinPacket> playerJoinPacketChannel;
         private INetworkChannel<PlayerLeavePacket> playerLeavePacketChannel;
@@ -74,12 +83,20 @@ namespace Source.Networking
 
             if (network.IsClient)
             {
-                clientData = new ClientData();
+                ClientData = new ClientData();
 
                 audioProvider.SamplesAvailable += (chunk, samples) =>
                 {
+                    if (ClientData.LocalPlayer == null)
+                    {
+                        return;
+                    }
+
                     audioPacketChannel.Message.Chunk = chunk;
-                    samples.AsSpan().CopyTo(audioPacketChannel.Message.Samples);
+                    for (var i = 0; i < samples.Length; i++)
+                    {
+                        audioPacketChannel.Message.Samples[i] = samples[i] * ClientData.LocalPlayer.Volume;
+                    }
 
                     audioPacketChannel.Write();
                     foreach (var connection in network.Connections)
@@ -95,64 +112,19 @@ namespace Source.Networking
             });
         }
 
-        private void SyncPlayerData()
-        {
-            if (network.IsClient)
-            {
-                playerDataPacketChannel.Message.Name = localPlayerSettings.PlayerName;
-                foreach (var connection in network.Connections)
-                {
-                    playerDataPacketChannel.Send(connection);
-                }
-            }
-
-            if (network.IsServer)
-            {
-                foreach (var player in players.Values)
-                {
-                    playerDataPacketChannel.Message.PlayerId = player.Id;
-                    playerDataPacketChannel.Message.Name = player.Name;
-                    foreach (var connection in network.Connections)
-                    {
-                        playerDataPacketChannel.Send(connection);
-                    }
-                }
-            }
-        }
-
-        private void OnPlayerDataPacket(NetworkConnection connection, PlayerDataPacket message)
-        {
-            if (network.IsClient)
-            {
-                if (players.TryGetValue(message.PlayerId, out var player))
-                {
-                    player.Name = message.Name;
-                }
-            }
-
-            if (network.IsServer)
-            {
-                if (players.TryGetValue(connection.Id, out var player))
-                {
-                    player.Name = message.Name;
-                    SyncPlayerData();
-                }
-            }
-        }
-
         private void OnDestroy()
         {
             if (network.IsClient)
             {
-                clientData.Output.Dispose();
+                ClientData.Output.Dispose();
             }
         }
 
         private void FixedUpdate()
         {
-            if (network.IsClient && clientData.LocalPlayer != null)
+            if (network.IsClient && ClientData.LocalPlayer != null)
             {
-                playerUpdatePacketChannel.Message.Position = clientData.LocalPlayer.Character.transform.position;
+                playerUpdatePacketChannel.Message.Position = ClientData.LocalPlayer.Character.transform.position;
                 playerUpdatePacketChannel.Write();
                 foreach (var connection in network.Connections)
                 {
@@ -165,22 +137,52 @@ namespace Source.Networking
         {
             if (network.IsClient)
             {
-                if (clientData.LoadedSubject != selectedSubject)
+                // Update UI
+                foreach (var (id, player) in players)
                 {
-                    var path = Application.streamingAssetsPath + $"/CIPIC/standard_hrir_database/{selectedSubject.ToFileName()}/hrir_final.matlab";
-                    clientData.Hrtf = new Hrtf(new MatFileReader(path));
+                    if (!playerVolumeControls.ContainsKey(id) && player != ClientData.LocalPlayer)
+                    {
+                        var display = instantiator.InstantiatePrefabForComponent<VolumeControlDisplay>(volumeControlPrefab, volumeControlParent);
+                        display.Player = player;
 
-                    clientData.LoadedSubject = selectedSubject;
+                        playerVolumeControls.Add(id, display);
+                    }
                 }
 
-                var output = clientData.Output;
-                var outputBuffer = clientData.OutputBuffer;
-                var queuedChunks = clientData.Output.QueuedSamplesPerChannel / AudioConstants.SamplesChunkSize;
+                foreach (var id in playerVolumeControls.Keys)
+                {
+                    if (!players.ContainsKey(id))
+                    {
+                        playerVolumeControlsToRemove.Add(id);
+                    }
+                }
+
+                foreach (var id in playerVolumeControlsToRemove)
+                {
+                    Destroy(playerVolumeControls[id].gameObject);
+                    playerVolumeControls.Remove(id);
+                }
+                playerVolumeControlsToRemove.Clear();
+
+                // Load HRTF
+                if (ClientData.LoadedSubject != selectedSubject)
+                {
+                    var path = Application.streamingAssetsPath + $"/CIPIC/standard_hrir_database/{selectedSubject.ToFileName()}/hrir_final.matlab";
+                    ClientData.Hrtf = new Hrtf(new MatFileReader(path));
+
+                    ClientData.LoadedSubject = selectedSubject;
+                }
+
+                // Process audio
+                var output = ClientData.Output;
+                var outputBuffer = ClientData.OutputBuffer;
+                var queuedChunks = ClientData.Output.QueuedSamplesPerChannel / AudioConstants.SamplesChunkSize;
                 if (queuedChunks < minChunksQueued)
                 {
                     foreach (var (_, player) in players)
                     {
-                        if (player == clientData.LocalPlayer)
+                        var isLocal = player == ClientData.LocalPlayer;
+                        if (!hearSelfToggle.isOn && isLocal)
                         {
                             continue;
                         }
@@ -197,7 +199,8 @@ namespace Source.Networking
                             var results = ApplyHrtf(player);
                             for (var i = 0; i < results.Length; i++)
                             {
-                                outputBuffer[i] += results[i];
+                                var volume = isLocal ? 1 : player.Volume;
+                                outputBuffer[i] += results[i] * volume;
                             }
                         }
                     }
@@ -216,8 +219,13 @@ namespace Source.Networking
 
         private float[] ApplyHrtf(Player player)
         {
-            var offsetToSound = player.Character.transform.position - clientData.LocalPlayer.Character.transform.position;
+            var offsetToSound = player.Character.transform.position - ClientData.LocalPlayer.Character.transform.position;
             offsetToSound = offsetToSound.Swizzle(Vector3Swizzle.XZY); // Need to swap Y and Z values
+
+            if (player == ClientData.LocalPlayer)
+            {
+                offsetToSound = Vector3.forward * 0.1f;
+            }
 
             var applyOptions = new ApplyHrtfOptions
             {
@@ -226,12 +234,12 @@ namespace Source.Networking
                 AttenuationStart = attenuationStart,
                 AttenuationEnd = attenuationEnd,
 
-                PreviousChunk = clientData.PreviousChunk,
-                CurrentChunk = clientData.CurrentChunk,
-                NextChunk = clientData.NextChunk,
-                LeftChannel = clientData.LeftChannel,
-                RightChannel = clientData.RightChannel,
-                ResultsBuffer = clientData.ResultsBuffer,
+                PreviousChunk = ClientData.PreviousChunk,
+                CurrentChunk = ClientData.CurrentChunk,
+                NextChunk = ClientData.NextChunk,
+                LeftChannel = ClientData.LeftChannel,
+                RightChannel = ClientData.RightChannel,
+                ResultsBuffer = ClientData.ResultsBuffer,
             };
 
             // --- Update audio buffers ---
@@ -240,7 +248,7 @@ namespace Source.Networking
             buffers[(player.Audio.LastOutputChunk - 1 + buffers.Length) % buffers.Length].AsSpan().CopyTo(applyOptions.CurrentChunk);
             buffers[(player.Audio.LastOutputChunk - 0 + buffers.Length) % buffers.Length].AsSpan().CopyTo(applyOptions.NextChunk);
 
-            return clientData.Hrtf.Apply(applyOptions);
+            return ClientData.Hrtf.Apply(applyOptions);
         }
 
         private void OnConnectionStarted(INetwork _, NetworkConnection connection)
@@ -291,6 +299,51 @@ namespace Source.Networking
             }
         }
 
+        private void SyncPlayerData()
+        {
+            if (network.IsClient)
+            {
+                playerDataPacketChannel.Message.Name = localPlayerSettings.PlayerName;
+                foreach (var connection in network.Connections)
+                {
+                    playerDataPacketChannel.Send(connection);
+                }
+            }
+
+            if (network.IsServer)
+            {
+                foreach (var player in players.Values)
+                {
+                    playerDataPacketChannel.Message.PlayerId = player.Id;
+                    playerDataPacketChannel.Message.Name = player.Name;
+                    foreach (var connection in network.Connections)
+                    {
+                        playerDataPacketChannel.Send(connection);
+                    }
+                }
+            }
+        }
+
+        private void OnPlayerDataPacket(NetworkConnection connection, PlayerDataPacket message)
+        {
+            if (network.IsClient)
+            {
+                if (players.TryGetValue(message.PlayerId, out var player))
+                {
+                    player.Name = message.Name;
+                }
+            }
+
+            if (network.IsServer)
+            {
+                if (players.TryGetValue(connection.Id, out var player))
+                {
+                    player.Name = message.Name;
+                    SyncPlayerData();
+                }
+            }
+        }
+
         private void OnPlayerJoinPacket(NetworkConnection connection, PlayerJoinPacket message)
         {
             Debug.Log($"Player joined: {message.PlayerId}");
@@ -314,7 +367,8 @@ namespace Source.Networking
 
             if (message.IsLocal)
             {
-                clientData.LocalPlayer = player;
+                ClientData.LocalPlayer = player;
+                localPlayerVolumeControl.Player = player;
                 SyncPlayerData();
             }
         }
@@ -348,7 +402,7 @@ namespace Source.Networking
 
             if (network.IsClient)
             {
-                if (message.PlayerId != clientData.LocalPlayer.Id && players.TryGetValue(message.PlayerId, out var player))
+                if (message.PlayerId != ClientData.LocalPlayer.Id && players.TryGetValue(message.PlayerId, out var player))
                 {
                     player.Position = message.Position;
                     player.Character.transform.position = message.Position;
@@ -364,11 +418,6 @@ namespace Source.Networking
                 audioPacketChannel.Write(message);
                 foreach (var other in network.Connections)
                 {
-                    if (connection == other)
-                    {
-                        continue;
-                    }
-
                     audioPacketChannel.SendNoWrite(other);
                 }
             }

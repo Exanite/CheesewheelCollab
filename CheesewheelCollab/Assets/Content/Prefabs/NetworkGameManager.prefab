@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6437581932009978290}
   - component: {fileID: 5769629615450017856}
+  - component: {fileID: 7707963172615832418}
   m_Layer: 0
   m_Name: NetworkGameManager
   m_TagString: Untagged
@@ -48,6 +49,8 @@ MonoBehaviour:
   localPlayerPrefab: {fileID: 399279549176179290, guid: 47ad692fe41fb9443a7c7d2eaf224203, type: 3}
   mainMenuScene: {fileID: 11400000, guid: 574c0ef2d169b6a43b211072fbd837ff, type: 2}
   audioProvider: {fileID: 0}
+  localPlayerVolumeControl: {fileID: 0}
+  volumeControlPrefab: {fileID: 0}
   volume: 1
   minChunksBuffered: 7
   maxChunksBuffered: 12
@@ -79,3 +82,21 @@ MonoBehaviour:
     m_RotationOrder: 4
   attenuationStart: 3
   attenuationEnd: 6
+--- !u!114 &7707963172615832418
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2690644353089015413}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89901fa14ca434ce89025b2d46aaf893, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _components:
+  - {fileID: 5769629615450017856}
+  _identifier: 
+  _useSceneContext: 0
+  _context: {fileID: 0}
+  _bindType: 0
