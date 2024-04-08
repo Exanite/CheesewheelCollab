@@ -14,6 +14,7 @@ using UniDi;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
+using UnityEngine.UI;
 using Network = Exanite.Networking.Network;
 
 namespace Source.Networking
@@ -29,6 +30,7 @@ namespace Source.Networking
         [SerializeField] private VolumeControlDisplay localPlayerVolumeControl;
         [SerializeField] private VolumeControlDisplay volumeControlPrefab;
         [SerializeField] private RectTransform volumeControlParent;
+        [SerializeField] private Toggle hearSelfToggle;
 
         [Header("Audio Processing")]
         [Range(0, 1)]
@@ -85,8 +87,16 @@ namespace Source.Networking
 
                 audioProvider.SamplesAvailable += (chunk, samples) =>
                 {
+                    if (ClientData.LocalPlayer == null)
+                    {
+                        return;
+                    }
+
                     audioPacketChannel.Message.Chunk = chunk;
-                    samples.AsSpan().CopyTo(audioPacketChannel.Message.Samples);
+                    for (var i = 0; i < samples.Length; i++)
+                    {
+                        audioPacketChannel.Message.Samples[i] = samples[i] * ClientData.LocalPlayer.Volume;
+                    }
 
                     audioPacketChannel.Write();
                     foreach (var connection in network.Connections)
@@ -171,7 +181,8 @@ namespace Source.Networking
                 {
                     foreach (var (_, player) in players)
                     {
-                        if (player == ClientData.LocalPlayer)
+                        var isLocal = player == ClientData.LocalPlayer;
+                        if (!hearSelfToggle.isOn && isLocal)
                         {
                             continue;
                         }
@@ -188,7 +199,8 @@ namespace Source.Networking
                             var results = ApplyHrtf(player);
                             for (var i = 0; i < results.Length; i++)
                             {
-                                outputBuffer[i] += results[i];
+                                var volume = isLocal ? 1 : player.Volume;
+                                outputBuffer[i] += results[i] * volume;
                             }
                         }
                     }
@@ -209,6 +221,11 @@ namespace Source.Networking
         {
             var offsetToSound = player.Character.transform.position - ClientData.LocalPlayer.Character.transform.position;
             offsetToSound = offsetToSound.Swizzle(Vector3Swizzle.XZY); // Need to swap Y and Z values
+
+            if (player == ClientData.LocalPlayer)
+            {
+                offsetToSound = Vector3.forward * 0.1f;
+            }
 
             var applyOptions = new ApplyHrtfOptions
             {
@@ -401,11 +418,6 @@ namespace Source.Networking
                 audioPacketChannel.Write(message);
                 foreach (var other in network.Connections)
                 {
-                    if (connection == other)
-                    {
-                        continue;
-                    }
-
                     audioPacketChannel.SendNoWrite(other);
                 }
             }
