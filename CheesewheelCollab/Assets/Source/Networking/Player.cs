@@ -6,13 +6,14 @@ namespace Source.Networking
     public class Player
     {
         public int Id;
+        public string Name = "Player";
 
         public Vector2 Position;
 
         /// <summary>
         /// Null on server.
         /// </summary>
-        public GameObject GameObject;
+        public PlayerCharacter Character;
 
         /// <summary>
         /// Null on server.

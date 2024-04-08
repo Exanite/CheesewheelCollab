@@ -8,6 +8,7 @@ using Exanite.Networking;
 using Exanite.Networking.Channels;
 using Exanite.SceneManagement;
 using Source.Audio;
+using Source.Player;
 using UniDi;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -19,8 +20,8 @@ namespace Source.Networking
     public class NetworkGameManager : MonoBehaviour
     {
         [Header("Dependencies")]
-        [SerializeField] private GameObject playerPrefab;
-        [SerializeField] private GameObject localPlayerPrefab;
+        [SerializeField] private PlayerCharacter playerPrefab;
+        [SerializeField] private PlayerCharacter localPlayerPrefab;
         [SerializeField] private SceneIdentifier mainMenuScene;
         [FormerlySerializedAs("audioRecorder")]
         [SerializeField] private AudioProvider audioProvider;
@@ -34,16 +35,24 @@ namespace Source.Networking
         [FormerlySerializedAs("hrtfSubject")]
         [SerializeField] private HrtfSubject selectedSubject = HrtfSubject.Subject058;
 
+        [Header("Audio Attenuation")]
+        [SerializeField] private AnimationCurve attenuationCurve;
+        [SerializeField] private float attenuationStart;
+        [SerializeField] private float attenuationEnd;
+
         [Inject] private IEnumerable<IPacketHandler> packetHandlers;
         [Inject] private Network coreNetwork;
         [Inject] private IChanneledNetwork network;
+        [Inject] private LocalPlayerSettings localPlayerSettings;
 
         private ClientData clientData;
 
+        // Connection ID is the same as Player ID
         private Dictionary<int, Player> players = new();
 
         private INetworkChannel<PlayerJoinPacket> playerJoinPacketChannel;
         private INetworkChannel<PlayerLeavePacket> playerLeavePacketChannel;
+        private INetworkChannel<PlayerDataPacket> playerDataPacketChannel;
         private INetworkChannel<PlayerUpdatePacket> playerUpdatePacketChannel;
         private INetworkChannel<AudioPacket> audioPacketChannel;
 
@@ -56,6 +65,7 @@ namespace Source.Networking
 
             playerJoinPacketChannel = network.CreateChannel<PlayerJoinPacket>(nameof(PlayerJoinPacket), SendType.Reliable, OnPlayerJoinPacket);
             playerLeavePacketChannel = network.CreateChannel<PlayerLeavePacket>(nameof(PlayerLeavePacket), SendType.Reliable, OnPlayerLeavePacket);
+            playerDataPacketChannel = network.CreateChannel<PlayerDataPacket>(nameof(PlayerDataPacket), SendType.Reliable, OnPlayerDataPacket);
             playerUpdatePacketChannel = network.CreateChannel<PlayerUpdatePacket>(nameof(PlayerUpdatePacket), SendType.Unreliable, OnPlayerUpdatePacket);
             audioPacketChannel = network.CreateChannel<AudioPacket>(nameof(AudioPacket), SendType.Unreliable, OnAudioPacket);
 
@@ -85,6 +95,51 @@ namespace Source.Networking
             });
         }
 
+        private void SyncPlayerData()
+        {
+            if (network.IsClient)
+            {
+                playerDataPacketChannel.Message.Name = localPlayerSettings.PlayerName;
+                foreach (var connection in network.Connections)
+                {
+                    playerDataPacketChannel.Send(connection);
+                }
+            }
+
+            if (network.IsServer)
+            {
+                foreach (var player in players.Values)
+                {
+                    playerDataPacketChannel.Message.PlayerId = player.Id;
+                    playerDataPacketChannel.Message.Name = player.Name;
+                    foreach (var connection in network.Connections)
+                    {
+                        playerDataPacketChannel.Send(connection);
+                    }
+                }
+            }
+        }
+
+        private void OnPlayerDataPacket(NetworkConnection connection, PlayerDataPacket message)
+        {
+            if (network.IsClient)
+            {
+                if (players.TryGetValue(message.PlayerId, out var player))
+                {
+                    player.Name = message.Name;
+                }
+            }
+
+            if (network.IsServer)
+            {
+                if (players.TryGetValue(connection.Id, out var player))
+                {
+                    player.Name = message.Name;
+                    SyncPlayerData();
+                }
+            }
+        }
+
         private void OnDestroy()
         {
             if (network.IsClient)
@@ -97,7 +152,7 @@ namespace Source.Networking
         {
             if (network.IsClient && clientData.LocalPlayer != null)
             {
-                playerUpdatePacketChannel.Message.Position = clientData.LocalPlayer.GameObject.transform.position;
+                playerUpdatePacketChannel.Message.Position = clientData.LocalPlayer.Character.transform.position;
                 playerUpdatePacketChannel.Write();
                 foreach (var connection in network.Connections)
                 {
@@ -161,12 +216,15 @@ namespace Source.Networking
 
         private float[] ApplyHrtf(Player player)
         {
-            var offsetToSound = player.GameObject.transform.position - clientData.LocalPlayer.GameObject.transform.position;
+            var offsetToSound = player.Character.transform.position - clientData.LocalPlayer.Character.transform.position;
             offsetToSound = offsetToSound.Swizzle(Vector3Swizzle.XZY); // Need to swap Y and Z values
 
             var applyOptions = new ApplyHrtfOptions
             {
                 OffsetToSound = offsetToSound,
+                AttenuationCurve = attenuationCurve,
+                AttenuationStart = attenuationStart,
+                AttenuationEnd = attenuationEnd,
 
                 PreviousChunk = clientData.PreviousChunk,
                 CurrentChunk = clientData.CurrentChunk,
@@ -246,15 +304,18 @@ namespace Source.Networking
             var player = new Player
             {
                 Id = message.PlayerId,
-                GameObject = Instantiate(playerPrefabToInstantiate),
+                Character = Instantiate(playerPrefabToInstantiate),
                 Audio = new Player.PlayerAudioData(),
             };
+
+            player.Character.Player = player;
 
             players.Add(player.Id, player);
 
             if (message.IsLocal)
             {
                 clientData.LocalPlayer = player;
+                SyncPlayerData();
             }
         }
 
@@ -263,7 +324,7 @@ namespace Source.Networking
             Debug.Log($"Player left: {message.PlayerId}");
 
             players.Remove(message.PlayerId, out var removedPlayer);
-            Destroy(removedPlayer.GameObject);
+            Destroy(removedPlayer.Character.gameObject);
         }
 
         private void OnPlayerUpdatePacket(NetworkConnection connection, PlayerUpdatePacket message)
@@ -290,7 +351,7 @@ namespace Source.Networking
                 if (message.PlayerId != clientData.LocalPlayer.Id && players.TryGetValue(message.PlayerId, out var player))
                 {
                     player.Position = message.Position;
-                    player.GameObject.transform.position = message.Position;
+                    player.Character.transform.position = message.Position;
                 }
             }
         }
