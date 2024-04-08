@@ -1,7 +1,7 @@
 using Cysharp.Threading.Tasks;
 using Exanite.Networking.Transports.LiteNetLib;
 using Exanite.SceneManagement;
-using Source.Player;
+using Source.Players;
 using TMPro;
 using UniDi;
 using UnityEngine;

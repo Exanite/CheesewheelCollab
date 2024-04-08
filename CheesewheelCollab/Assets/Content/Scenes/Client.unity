@@ -437,6 +437,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 7788034993472636964, guid: 06dc479c2aacbd44f82af254b794c759, type: 3}
   m_PrefabInstance: {fileID: 495758339}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &495758341 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2373018959447768571, guid: 06dc479c2aacbd44f82af254b794c759, type: 3}
+  m_PrefabInstance: {fileID: 495758339}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 43a47aed17d04c6bb8397c25abd88bd2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &618482445
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1024,6 +1035,14 @@ PrefabInstance:
       propertyPath: audioRecorder
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 5769629615450017856, guid: 1c3f4a1e570c84442bba26b9c7859175, type: 3}
+      propertyPath: volumeControlPrefab
+      value: 
+      objectReference: {fileID: 2373018959447768571, guid: 06dc479c2aacbd44f82af254b794c759, type: 3}
+    - target: {fileID: 5769629615450017856, guid: 1c3f4a1e570c84442bba26b9c7859175, type: 3}
+      propertyPath: localPlayerVolumeControl
+      value: 
+      objectReference: {fileID: 495758341}
     - target: {fileID: 6437581932009978290, guid: 1c3f4a1e570c84442bba26b9c7859175, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

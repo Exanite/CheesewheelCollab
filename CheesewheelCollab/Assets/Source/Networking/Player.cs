@@ -13,7 +13,7 @@ namespace Source.Networking
         /// <summary>
         /// Invalid on server.
         /// </summary>
-        public float Volume;
+        public float Volume = 1;
 
         /// <summary>
         /// Invalid on server.
