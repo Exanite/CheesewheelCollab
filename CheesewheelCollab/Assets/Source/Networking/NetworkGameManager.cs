@@ -28,6 +28,7 @@ namespace Source.Networking
         [SerializeField] private AudioProvider audioProvider;
         [SerializeField] private VolumeControlDisplay localPlayerVolumeControl;
         [SerializeField] private VolumeControlDisplay volumeControlPrefab;
+        [SerializeField] private RectTransform volumeControlParent;
 
         [Header("Audio Processing")]
         [Range(0, 1)]
@@ -53,6 +54,8 @@ namespace Source.Networking
 
         // Connection ID is the same as Player ID
         private Dictionary<int, Player> players = new();
+        private Dictionary<int, VolumeControlDisplay> playerVolumeControls = new();
+        private List<int> playerVolumeControlsToRemove = new();
 
         private INetworkChannel<PlayerJoinPacket> playerJoinPacketChannel;
         private INetworkChannel<PlayerLeavePacket> playerLeavePacketChannel;
@@ -99,51 +102,6 @@ namespace Source.Networking
             });
         }
 
-        private void SyncPlayerData()
-        {
-            if (network.IsClient)
-            {
-                playerDataPacketChannel.Message.Name = localPlayerSettings.PlayerName;
-                foreach (var connection in network.Connections)
-                {
-                    playerDataPacketChannel.Send(connection);
-                }
-            }
-
-            if (network.IsServer)
-            {
-                foreach (var player in players.Values)
-                {
-                    playerDataPacketChannel.Message.PlayerId = player.Id;
-                    playerDataPacketChannel.Message.Name = player.Name;
-                    foreach (var connection in network.Connections)
-                    {
-                        playerDataPacketChannel.Send(connection);
-                    }
-                }
-            }
-        }
-
-        private void OnPlayerDataPacket(NetworkConnection connection, PlayerDataPacket message)
-        {
-            if (network.IsClient)
-            {
-                if (players.TryGetValue(message.PlayerId, out var player))
-                {
-                    player.Name = message.Name;
-                }
-            }
-
-            if (network.IsServer)
-            {
-                if (players.TryGetValue(connection.Id, out var player))
-                {
-                    player.Name = message.Name;
-                    SyncPlayerData();
-                }
-            }
-        }
-
         private void OnDestroy()
         {
             if (network.IsClient)
@@ -169,6 +127,34 @@ namespace Source.Networking
         {
             if (network.IsClient)
             {
+                // Update UI
+                foreach (var (id, player) in players)
+                {
+                    if (!playerVolumeControls.ContainsKey(id) && player != ClientData.LocalPlayer)
+                    {
+                        var display = instantiator.InstantiatePrefabForComponent<VolumeControlDisplay>(volumeControlPrefab, volumeControlParent);
+                        display.Player = player;
+
+                        playerVolumeControls.Add(id, display);
+                    }
+                }
+
+                foreach (var id in playerVolumeControls.Keys)
+                {
+                    if (!players.ContainsKey(id))
+                    {
+                        playerVolumeControlsToRemove.Add(id);
+                    }
+                }
+
+                foreach (var id in playerVolumeControlsToRemove)
+                {
+                    Destroy(playerVolumeControls[id].gameObject);
+                    playerVolumeControls.Remove(id);
+                }
+                playerVolumeControlsToRemove.Clear();
+
+                // Load HRTF
                 if (ClientData.LoadedSubject != selectedSubject)
                 {
                     var path = Application.streamingAssetsPath + $"/CIPIC/standard_hrir_database/{selectedSubject.ToFileName()}/hrir_final.matlab";
@@ -177,6 +163,7 @@ namespace Source.Networking
                     ClientData.LoadedSubject = selectedSubject;
                 }
 
+                // Process audio
                 var output = ClientData.Output;
                 var outputBuffer = ClientData.OutputBuffer;
                 var queuedChunks = ClientData.Output.QueuedSamplesPerChannel / AudioConstants.SamplesChunkSize;
@@ -292,6 +279,51 @@ namespace Source.Networking
             if (network.IsClient)
             {
                 mainMenuScene.Load(LoadSceneMode.Single);
+            }
+        }
+
+        private void SyncPlayerData()
+        {
+            if (network.IsClient)
+            {
+                playerDataPacketChannel.Message.Name = localPlayerSettings.PlayerName;
+                foreach (var connection in network.Connections)
+                {
+                    playerDataPacketChannel.Send(connection);
+                }
+            }
+
+            if (network.IsServer)
+            {
+                foreach (var player in players.Values)
+                {
+                    playerDataPacketChannel.Message.PlayerId = player.Id;
+                    playerDataPacketChannel.Message.Name = player.Name;
+                    foreach (var connection in network.Connections)
+                    {
+                        playerDataPacketChannel.Send(connection);
+                    }
+                }
+            }
+        }
+
+        private void OnPlayerDataPacket(NetworkConnection connection, PlayerDataPacket message)
+        {
+            if (network.IsClient)
+            {
+                if (players.TryGetValue(message.PlayerId, out var player))
+                {
+                    player.Name = message.Name;
+                }
+            }
+
+            if (network.IsServer)
+            {
+                if (players.TryGetValue(connection.Id, out var player))
+                {
+                    player.Name = message.Name;
+                    SyncPlayerData();
+                }
             }
         }
 
