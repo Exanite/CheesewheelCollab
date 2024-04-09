@@ -414,7 +414,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   audioSourcePrefab: {fileID: 195760544085390200, guid: e6f1f400197135349ad65702dbedc6a8, type: 3}
   clips:
-  - {fileID: 8300000, guid: fa2892c93cff6cf4db53a72246ba799b, type: 3}
+  - {fileID: 8300000, guid: b226161bab8c6fd41875717794e34374, type: 3}
 --- !u!1 &211479953
 GameObject:
   m_ObjectHideFlags: 0

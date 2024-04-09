@@ -12,6 +12,7 @@ namespace Source.Audio
 		private void Start()
 		{
             ClipTest();
+            Invoke("ClipTest", 3);
 		}
 
 		public void ClipTest()
@@ -21,7 +22,6 @@ namespace Source.Audio
             CustomAudioSource cas = instance.GetComponent<CustomAudioSource>();
             cas.Loop = false;
             cas.Clip = clips[0];
-            cas.AttenuationCurve = AnimationCurve.Constant(0, 1, 1);
 		}
     }
 }
