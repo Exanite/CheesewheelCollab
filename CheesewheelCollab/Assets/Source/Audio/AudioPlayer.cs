@@ -132,11 +132,11 @@ namespace Source.Audio
                     }
                 }
 
-                foreach (var source in audioSourcesToDestroy.ToArray())
+                foreach (var source in audioSourcesToDestroy)
                 {
                     Destroy(source.gameObject);
-                    audioSourcesToDestroy.Remove(source);
                 }
+                audioSourcesToDestroy.Clear();
 
                 if (audioProvider)
                 {
