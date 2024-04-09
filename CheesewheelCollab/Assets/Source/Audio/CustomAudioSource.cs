@@ -88,17 +88,62 @@ namespace Source.Audio
 
         public void GetPrevious(float[] buffer)
         {
-            Clip.GetData(buffer, (chunk + 0) * AudioConstants.SamplesChunkSize % Clip.samples);
+            var readStart = (chunk + 0) * AudioConstants.SamplesChunkSize;
+            Clip.GetData(buffer, readStart % Clip.samples);
+
+            if (!loop && readStart + AudioConstants.SamplesChunkSize > Clip.samples)
+            {
+                var remainingSamples = clip.samples - readStart;
+                if (remainingSamples > 0)
+                {
+                    var invalid = buffer.AsSpan().Slice(remainingSamples);
+                    invalid.Clear();
+                }
+                else
+                {
+                    buffer.AsSpan().Clear();
+                }
+            }
         }
 
         public void GetCurrent(float[] buffer)
         {
-            Clip.GetData(buffer, (chunk + 1) * AudioConstants.SamplesChunkSize % Clip.samples);
+            var readStart = (chunk + 1) * AudioConstants.SamplesChunkSize;
+            Clip.GetData(buffer, readStart % Clip.samples);
+
+            if (!loop && readStart + AudioConstants.SamplesChunkSize > Clip.samples)
+            {
+                var remainingSamples = clip.samples - readStart;
+                if (remainingSamples > 0)
+                {
+                    var invalid = buffer.AsSpan().Slice(remainingSamples);
+                    invalid.Clear();
+                }
+                else
+                {
+                    buffer.AsSpan().Clear();
+                }
+            }
         }
 
         public void GetNext(float[] buffer)
         {
-            Clip.GetData(buffer, (chunk + 2) * AudioConstants.SamplesChunkSize % Clip.samples);
+            var readStart = (chunk + 2) * AudioConstants.SamplesChunkSize;
+            Clip.GetData(buffer, readStart % Clip.samples);
+
+            if (!loop && readStart + AudioConstants.SamplesChunkSize > Clip.samples)
+            {
+                var remainingSamples = clip.samples - readStart;
+                if (remainingSamples > 0)
+                {
+                    var invalid = buffer.AsSpan().Slice(remainingSamples);
+                    invalid.Clear();
+                }
+                else
+                {
+                    buffer.AsSpan().Clear();
+                }
+            }
         }
     }
 }
