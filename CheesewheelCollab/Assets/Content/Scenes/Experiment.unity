@@ -209,7 +209,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &139385472
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1169,6 +1169,70 @@ PrefabInstance:
     - target: {fileID: 195760544085390200, guid: e6f1f400197135349ad65702dbedc6a8, type: 3}
       propertyPath: m_Name
       value: AudioSource
+      objectReference: {fileID: 0}
+    - target: {fileID: 1341702488115354137, guid: e6f1f400197135349ad65702dbedc6a8, type: 3}
+      propertyPath: clip
+      value: 
+      objectReference: {fileID: 8300000, guid: 392d0dfa30822324194a0590a3b632b8, type: 3}
+    - target: {fileID: 1341702488115354137, guid: e6f1f400197135349ad65702dbedc6a8, type: 3}
+      propertyPath: loop
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1341702488115354137, guid: e6f1f400197135349ad65702dbedc6a8, type: 3}
+      propertyPath: attenuationEnd
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1341702488115354137, guid: e6f1f400197135349ad65702dbedc6a8, type: 3}
+      propertyPath: attenuationStart
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1341702488115354137, guid: e6f1f400197135349ad65702dbedc6a8, type: 3}
+      propertyPath: attenuationCurve.m_Curve.Array.data[0].time
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1341702488115354137, guid: e6f1f400197135349ad65702dbedc6a8, type: 3}
+      propertyPath: attenuationCurve.m_Curve.Array.data[1].time
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1341702488115354137, guid: e6f1f400197135349ad65702dbedc6a8, type: 3}
+      propertyPath: attenuationCurve.m_Curve.Array.data[0].value
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1341702488115354137, guid: e6f1f400197135349ad65702dbedc6a8, type: 3}
+      propertyPath: attenuationCurve.m_Curve.Array.data[1].value
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1341702488115354137, guid: e6f1f400197135349ad65702dbedc6a8, type: 3}
+      propertyPath: attenuationCurve.m_Curve.Array.data[0].inSlope
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1341702488115354137, guid: e6f1f400197135349ad65702dbedc6a8, type: 3}
+      propertyPath: attenuationCurve.m_Curve.Array.data[1].inSlope
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1341702488115354137, guid: e6f1f400197135349ad65702dbedc6a8, type: 3}
+      propertyPath: attenuationCurve.m_Curve.Array.data[0].outSlope
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1341702488115354137, guid: e6f1f400197135349ad65702dbedc6a8, type: 3}
+      propertyPath: attenuationCurve.m_Curve.Array.data[1].inWeight
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1341702488115354137, guid: e6f1f400197135349ad65702dbedc6a8, type: 3}
+      propertyPath: attenuationCurve.m_Curve.Array.data[1].outSlope
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1341702488115354137, guid: e6f1f400197135349ad65702dbedc6a8, type: 3}
+      propertyPath: attenuationCurve.m_Curve.Array.data[0].outWeight
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1341702488115354137, guid: e6f1f400197135349ad65702dbedc6a8, type: 3}
+      propertyPath: attenuationCurve.m_Curve.Array.data[0].tangentMode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1341702488115354137, guid: e6f1f400197135349ad65702dbedc6a8, type: 3}
+      propertyPath: attenuationCurve.m_Curve.Array.data[1].tangentMode
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4093071670181444245, guid: e6f1f400197135349ad65702dbedc6a8, type: 3}
       propertyPath: m_LocalPosition.x
