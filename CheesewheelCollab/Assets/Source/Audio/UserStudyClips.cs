@@ -14,7 +14,7 @@ namespace Source.Audio
 
 		private void Start()
 		{
-            Clip6();
+            Clip7();
 		}
 
         public void Clip0() // no notif from all directions
@@ -123,6 +123,19 @@ namespace Source.Audio
 
             StartCoroutine(CreateClip(Clips.FOOTSTEPS, 6, -1, 0));
             StartCoroutine(CreateClip(Clips.MOMENT, 0.5f, -1, 0));
+        }
+
+        public void Clip7() // similar-angle test
+        {
+            StartCoroutine(CreateClip(Clips.BUSINESS, 0, 0, 2));
+
+            StartCoroutine(CreateClip(Clips.MOMENT, 5, 0, 1));
+
+            StartCoroutine(CreateClip(Clips.MOMENT, 5, 1, 0));
+
+            StartCoroutine(CreateClip(Clips.MOMENT, 5, 0, -1));
+
+            StartCoroutine(CreateClip(Clips.MOMENT, 5, -1, 0));
         }
 
         public IEnumerator CreateClip(Clips clip, float delay, float xPos, float yPos)
