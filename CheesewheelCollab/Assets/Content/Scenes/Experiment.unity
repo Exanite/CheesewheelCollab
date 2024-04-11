@@ -414,7 +414,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   audioSourcePrefab: {fileID: 195760544085390200, guid: e6f1f400197135349ad65702dbedc6a8, type: 3}
   clips:
+  - {fileID: 8300000, guid: 759c7a30dff8499418d440bd177d7e7c, type: 3}
+  - {fileID: 8300000, guid: f80efd23f5a425b4287dadafdb118213, type: 3}
+  - {fileID: 8300000, guid: 392d0dfa30822324194a0590a3b632b8, type: 3}
+  - {fileID: 8300000, guid: fa2892c93cff6cf4db53a72246ba799b, type: 3}
   - {fileID: 8300000, guid: b226161bab8c6fd41875717794e34374, type: 3}
+  - {fileID: 8300000, guid: c59b018fbf53b7746b89d45129b1c7bf, type: 3}
+  - {fileID: 8300000, guid: 042fef87873375a4c807dff6ebe3db5d, type: 3}
 --- !u!1 &211479953
 GameObject:
   m_ObjectHideFlags: 0
