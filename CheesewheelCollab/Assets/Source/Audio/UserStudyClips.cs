@@ -9,17 +9,26 @@ namespace Source.Audio
         [SerializeField] private GameObject audioSourcePrefab;
         [SerializeField] private AudioClip[] clips;
         public enum Clips { BUSINESS, MOMENT, DISCORD, BELL, GLOCK, KNOCKING, FOOTSTEPS };
+        private float globalDelay = 0;
 
 
 		private void Start()
 		{
-            StartCoroutine(CreateClip(Clips.DISCORD, 0, 0, 1));
-            StartCoroutine(CreateClip(Clips.BELL, 1, 1, 0));
+            Clip1();
 		}
+
+        public void Clip1()
+		{
+            StartCoroutine(CreateClip(Clips.DISCORD, 0, 0, 1));
+            StartCoroutine(CreateClip(Clips.MOMENT, 0.5f, 0, 1));
+            StartCoroutine(CreateClip(Clips.DISCORD, 5, -1, 0));
+            StartCoroutine(CreateClip(Clips.MOMENT, 0.5f, -1, 0));
+        }
 
 		public IEnumerator CreateClip(Clips clip, float delay, float xPos, float yPos)
 		{
-            yield return new WaitForSeconds(delay);
+            globalDelay += delay;
+            yield return new WaitForSeconds(globalDelay);
 
             //play several sounds, at a delay
             GameObject instance = Instantiate(audioSourcePrefab, new Vector3(xPos, yPos, 0), Quaternion.identity);
