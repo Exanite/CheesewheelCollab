@@ -125,7 +125,7 @@ namespace Source.Audio
             StartCoroutine(CreateClip(Clips.MOMENT, 0.5f, -1, 0));
         }
 
-        public void Clip7() // similar-angle test
+        public void Clip7() // SFX Comparison 2, similar-angle test
         {
             StartCoroutine(CreateClip(Clips.BUSINESS, 0, 0, 2.5f));
 
