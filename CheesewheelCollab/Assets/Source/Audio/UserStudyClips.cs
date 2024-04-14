@@ -14,7 +14,7 @@ namespace Source.Audio
 
 		private void Start()
 		{
-            Clip6();
+            Clip7();
 		}
 
         public void Clip0() // no notif from cardinal directions
@@ -103,39 +103,48 @@ namespace Source.Audio
             StartCoroutine(CreateClip(Clips.MOMENT, 0.5f, -1, 0));
         }
 
-        public void Clip6() // interruption test
+        public void Clip6() // SFX Comparison 1, wide angle
         {
-            StartCoroutine(CreateClip(Clips.BUSINESS, 0, 1, 2));
+            StartCoroutine(CreateClip(Clips.BUSINESS, 0, 1.5f, 2));
 
             StartCoroutine(CreateClip(Clips.MOMENT, 5, -1, 0));
 
-            StartCoroutine(CreateClip(Clips.DISCORD, 6, -1, 0));
+            StartCoroutine(CreateClip(Clips.DISCORD, 7, -1, 0));
             StartCoroutine(CreateClip(Clips.MOMENT, 0.5f, -1, 0));
 
-            StartCoroutine(CreateClip(Clips.BELL, 6, -1, 0));
+            StartCoroutine(CreateClip(Clips.BELL, 7, -1, 0));
+            StartCoroutine(CreateClip(Clips.MOMENT, 0.3f, -1, 0));
+
+            StartCoroutine(CreateClip(Clips.GLOCK, 7, -1, 0));
             StartCoroutine(CreateClip(Clips.MOMENT, 0.5f, -1, 0));
 
-            StartCoroutine(CreateClip(Clips.GLOCK, 6, -1, 0));
+            StartCoroutine(CreateClip(Clips.KNOCKING, 7, -1, 0));
             StartCoroutine(CreateClip(Clips.MOMENT, 0.5f, -1, 0));
 
-            StartCoroutine(CreateClip(Clips.KNOCKING, 6, -1, 0));
-            StartCoroutine(CreateClip(Clips.MOMENT, 0.5f, -1, 0));
-
-            StartCoroutine(CreateClip(Clips.FOOTSTEPS, 6, -1, 0));
+            StartCoroutine(CreateClip(Clips.FOOTSTEPS, 7, -1, 0));
             StartCoroutine(CreateClip(Clips.MOMENT, 0.5f, -1, 0));
         }
 
         public void Clip7() // similar-angle test
         {
-            StartCoroutine(CreateClip(Clips.BUSINESS, 0, 0, 2));
+            StartCoroutine(CreateClip(Clips.BUSINESS, 0, 0, 2.5f));
 
-            StartCoroutine(CreateClip(Clips.MOMENT, 5, 0, 1));
+            StartCoroutine(CreateClip(Clips.MOMENT, 5, 0.5f, 1));
 
-            StartCoroutine(CreateClip(Clips.MOMENT, 5, 1, 0));
+            StartCoroutine(CreateClip(Clips.FOOTSTEPS, 7, 0.5f, 1));
+            StartCoroutine(CreateClip(Clips.MOMENT, 0.5f, 0.5f, 1));
 
-            StartCoroutine(CreateClip(Clips.MOMENT, 5, 0, -1));
+            StartCoroutine(CreateClip(Clips.BELL, 7, 0.5f, 1));
+            StartCoroutine(CreateClip(Clips.MOMENT, 0.3f, 0.5f, 1));
 
-            StartCoroutine(CreateClip(Clips.MOMENT, 5, -1, 0));
+            StartCoroutine(CreateClip(Clips.DISCORD, 7, 0.5f, 1));
+            StartCoroutine(CreateClip(Clips.MOMENT, 0.5f, 0.5f, 1));
+
+            StartCoroutine(CreateClip(Clips.KNOCKING, 7, 0.5f, 1));
+            StartCoroutine(CreateClip(Clips.MOMENT, 0.5f, 0.5f, 1));
+
+            StartCoroutine(CreateClip(Clips.GLOCK, 7, 0.5f, 1));
+            StartCoroutine(CreateClip(Clips.MOMENT, 0.5f, 0.5f, 1));
         }
 
         public IEnumerator CreateClip(Clips clip, float delay, float xPos, float yPos)
