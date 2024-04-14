@@ -14,10 +14,10 @@ namespace Source.Audio
 
 		private void Start()
 		{
-            Clip7();
+            Clip6();
 		}
 
-        public void Clip0() // no notif from all directions
+        public void Clip0() // no notif from cardinal directions
         {
             StartCoroutine(CreateClip(Clips.MOMENT, 0, 0, 1));
 
@@ -28,8 +28,8 @@ namespace Source.Audio
             StartCoroutine(CreateClip(Clips.MOMENT, 5, -1, 0));
         }
 
-        public void Clip1() // discord ping from all directions
-		{
+        public void Clip1() // DISCORD ping from cardinal directions
+        {
             StartCoroutine(CreateClip(Clips.DISCORD, 0, 0, 1));
             StartCoroutine(CreateClip(Clips.MOMENT, 0.5f, 0, 1));
 
@@ -43,7 +43,7 @@ namespace Source.Audio
             StartCoroutine(CreateClip(Clips.MOMENT, 0.5f, -1, 0));
         }
 
-        public void Clip2() // bell ping from all directions
+        public void Clip2() // BELL ping from cardinal directions
         {
             StartCoroutine(CreateClip(Clips.BELL, 0, 0, 1));
             StartCoroutine(CreateClip(Clips.MOMENT, 0.5f, 0, 1));
@@ -58,7 +58,7 @@ namespace Source.Audio
             StartCoroutine(CreateClip(Clips.MOMENT, 0.5f, -1, 0));
         }
 
-        public void Clip3() // glock ping from all directions
+        public void Clip3() // GLOCK ping from cardinal directions
         {
             StartCoroutine(CreateClip(Clips.GLOCK, 0, 0, 1));
             StartCoroutine(CreateClip(Clips.MOMENT, 0.5f, 0, 1));
@@ -73,7 +73,7 @@ namespace Source.Audio
             StartCoroutine(CreateClip(Clips.MOMENT, 0.5f, -1, 0));
         }
 
-        public void Clip4() // KNOCKING ping from all directions
+        public void Clip4() // KNOCKING ping from cardinal directions
         {
             StartCoroutine(CreateClip(Clips.KNOCKING, 0, 0, 1));
             StartCoroutine(CreateClip(Clips.MOMENT, 0.5f, 0, 1));
@@ -88,7 +88,7 @@ namespace Source.Audio
             StartCoroutine(CreateClip(Clips.MOMENT, 0.5f, -1, 0));
         }
 
-        public void Clip5() // FOOTSTEPS ping from all directions
+        public void Clip5() // FOOTSTEPS ping from cardinal directions
         {
             StartCoroutine(CreateClip(Clips.FOOTSTEPS, 0, 0, 1));
             StartCoroutine(CreateClip(Clips.MOMENT, 0.5f, 0, 1));
@@ -148,6 +148,10 @@ namespace Source.Audio
             CustomAudioSource cas = instance.GetComponent<CustomAudioSource>();
             cas.Loop = false;
             cas.Clip = clips[(int)clip];
-		}
+            if (clip == Clips.GLOCK || clip == Clips.BELL)
+            {
+                cas.Volume = 0.6f;
+            }
+        }
     }
 }
