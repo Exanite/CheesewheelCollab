@@ -11,12 +11,6 @@ namespace Source.Audio
         public enum Clips { BUSINESS, MOMENT, DISCORD, BELL, GLOCK, KNOCKING, FOOTSTEPS };
         private float globalDelay = 0;
 
-
-		private void Start()
-		{
-            Clip7();
-		}
-
         public void Clip0() // no notif from cardinal directions
         {
             StartCoroutine(CreateClip(Clips.MOMENT, 0, 0, 1));
@@ -105,7 +99,9 @@ namespace Source.Audio
 
         public void Clip6() // SFX Comparison 1, wide angle
         {
+
             StartCoroutine(CreateClip(Clips.BUSINESS, 0, 1.5f, 2));
+            StartCoroutine(NowPlaying());
 
             StartCoroutine(CreateClip(Clips.MOMENT, 5, -1, 0));
 
@@ -128,6 +124,7 @@ namespace Source.Audio
         public void Clip7() // SFX Comparison 2, similar-angle test
         {
             StartCoroutine(CreateClip(Clips.BUSINESS, 0, 0, 2.5f));
+            StartCoroutine(NowPlaying());
 
             StartCoroutine(CreateClip(Clips.MOMENT, 5, 0.5f, 1));
 
@@ -161,6 +158,14 @@ namespace Source.Audio
             {
                 cas.Volume = 0.6f;
             }
+        }
+
+        public IEnumerator NowPlaying()
+		{
+            gameObject.GetComponent<SpriteRenderer>().color = new Color(1, 0, 0);
+            yield return new WaitForSeconds(46f);
+            gameObject.GetComponent<SpriteRenderer>().color = new Color(0, 1, 0);
+
         }
     }
 }
