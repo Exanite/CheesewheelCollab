@@ -144,6 +144,24 @@ namespace Source.Audio
             StartCoroutine(CreateClip(Clips.MOMENT, 0.5f, 0.5f, 1));
         }
 
+        public void Clip8()
+		{
+            AudioSource audioSource = GetComponent<AudioSource>();
+
+            audioSource.clip = clips[7];
+            audioSource.Play();
+            StartCoroutine(NowPlaying());
+		}
+
+        public void Clip9()
+        {
+            AudioSource audioSource = GetComponent<AudioSource>();
+
+            audioSource.clip = clips[8];
+            audioSource.Play();
+            StartCoroutine(NowPlaying());
+        }
+
         public IEnumerator CreateClip(Clips clip, float delay, float xPos, float yPos)
 		{
             globalDelay += delay;
