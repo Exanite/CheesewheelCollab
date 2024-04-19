@@ -401,7 +401,7 @@ namespace Source.Networking
 
         private void OnPlayerUpdatePacket(NetworkConnection connection, PlayerUpdatePacket message)
         {
-            Debug.Log($"Player updated: {message.PlayerId} ({message.Position}) (IsServer: {network.IsServer})");
+            // Debug.Log($"Player updated: {message.PlayerId} ({message.Position}) (IsServer: {network.IsServer})");
 
             if (network.IsServer)
             {
@@ -449,7 +449,7 @@ namespace Source.Networking
                 }
             }
 
-            Debug.Log($"Received audio from {message.PlayerId} (IsServer: {network.IsServer})");
+            // Debug.Log($"Received audio from {message.PlayerId} (IsServer: {network.IsServer})");
         }
     }
 }
