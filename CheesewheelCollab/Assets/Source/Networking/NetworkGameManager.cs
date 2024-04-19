@@ -35,6 +35,9 @@ namespace Source.Networking
         [Header("Audio Processing")]
         [Range(0, 1)]
         [SerializeField] private float volume = 1;
+        [FormerlySerializedAs("audioAmplitudeAverageBias")]
+        [Range(0, 1)]
+        [SerializeField] private float audioAmplitudeAverageSmoothing = 0.5f;
         [SerializeField] private int minChunksBuffered = 5;
         [SerializeField] private int maxChunksBuffered = 10;
         [SerializeField] private int minChunksQueued = 2;
@@ -179,14 +182,8 @@ namespace Source.Networking
                 var queuedChunks = ClientData.Output.QueuedSamplesPerChannel / AudioConstants.SamplesChunkSize;
                 if (queuedChunks < minChunksQueued)
                 {
-                    foreach (var (_, player) in players)
+                    foreach (var player in players.Values)
                     {
-                        var isLocal = player == ClientData.LocalPlayer;
-                        if (!hearSelfToggle.isOn && isLocal)
-                        {
-                            continue;
-                        }
-
                         if (player.Audio.MaxReceivedChunk - player.Audio.LastOutputChunk > maxChunksBuffered)
                         {
                             player.Audio.LastOutputChunk = player.Audio.MaxReceivedChunk - maxChunksBuffered;
@@ -195,6 +192,27 @@ namespace Source.Networking
                         if (player.Audio.MaxReceivedChunk - player.Audio.LastOutputChunk > minChunksBuffered)
                         {
                             player.Audio.LastOutputChunk++;
+
+                            // Update average amplitude
+                            {
+                                var amplitude = 0f;
+                                var currentBuffer = player.Audio.Buffers[player.Audio.LastOutputChunk % player.Audio.Buffers.Length];
+                                for (var j = 0; j < currentBuffer.Length; j++)
+                                {
+                                    amplitude += Math.Abs(currentBuffer[j]);
+                                }
+                                amplitude /= currentBuffer.Length;
+
+                                player.Audio.AverageAmplitude =
+                                    audioAmplitudeAverageSmoothing * player.Audio.AverageAmplitude
+                                    + (1 - audioAmplitudeAverageSmoothing) * amplitude;
+                            }
+
+                            var isLocal = player == ClientData.LocalPlayer;
+                            if (!hearSelfToggle.isOn && isLocal)
+                            {
+                                continue;
+                            }
 
                             var results = ApplyHrtf(player);
                             for (var i = 0; i < results.Length; i++)
@@ -383,7 +401,7 @@ namespace Source.Networking
 
         private void OnPlayerUpdatePacket(NetworkConnection connection, PlayerUpdatePacket message)
         {
-            Debug.Log($"Player updated: {message.PlayerId} ({message.Position}) (IsServer: {network.IsServer})");
+            // Debug.Log($"Player updated: {message.PlayerId} ({message.Position}) (IsServer: {network.IsServer})");
 
             if (network.IsServer)
             {
@@ -431,7 +449,7 @@ namespace Source.Networking
                 }
             }
 
-            Debug.Log($"Received audio from {message.PlayerId} (IsServer: {network.IsServer})");
+            // Debug.Log($"Received audio from {message.PlayerId} (IsServer: {network.IsServer})");
         }
     }
 }

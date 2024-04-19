@@ -14,7 +14,7 @@ namespace Source.Players
 
         private void Awake()
         {
-            playerName = $"Player {Random.Range(1, 100 + 1)}";
+            playerName = $"User {Random.Range(1, 100 + 1)}";
         }
     }
 }

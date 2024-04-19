@@ -38,9 +38,14 @@ namespace Source.Networking
             public int MaxReceivedChunk;
 
             /// <summary>
-            /// Last chunk output to speakers
+            /// Last chunk output to speakers.
             /// </summary>
             public int LastOutputChunk;
+
+            /// <summary>
+            /// Exponential weighted moving average of the amplitude.
+            /// </summary>
+            public float AverageAmplitude;
 
             public PlayerAudioData()
             {
