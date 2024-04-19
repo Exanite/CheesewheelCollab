@@ -375,7 +375,7 @@ namespace Source.Networking
             var player = new Player
             {
                 Id = message.PlayerId,
-                Character = Instantiate(playerPrefabToInstantiate),
+                Character = instantiator.InstantiatePrefabForComponent<PlayerCharacter>(playerPrefabToInstantiate),
                 Audio = new Player.PlayerAudioData(),
             };
 
