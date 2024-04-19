@@ -35,6 +35,8 @@ namespace Source.Networking
         [Header("Audio Processing")]
         [Range(0, 1)]
         [SerializeField] private float volume = 1;
+        [Range(0, 1)]
+        [SerializeField] private float audioAmplitudeAverageBias = 0.25f;
         [SerializeField] private int minChunksBuffered = 5;
         [SerializeField] private int maxChunksBuffered = 10;
         [SerializeField] private int minChunksQueued = 2;
@@ -164,6 +166,22 @@ namespace Source.Networking
                 }
                 playerVolumeControlsToRemove.Clear();
 
+                // Update audio amplitudes
+                foreach (var player in players.Values)
+                {
+                    var amplitude = 0f;
+                    var currentBuffer = player.Audio.Buffers[player.Audio.MaxReceivedChunk % player.Audio.Buffers.Length];
+                    for (var j = 0; j < currentBuffer.Length; j++)
+                    {
+                        amplitude += Math.Abs(currentBuffer[j]);
+                    }
+                    amplitude /= currentBuffer.Length;
+
+                    player.Audio.AverageAmplitude =
+                        (1 - audioAmplitudeAverageBias) * player.Audio.AverageAmplitude
+                        + audioAmplitudeAverageBias * amplitude;
+                }
+
                 // Load HRTF
                 if (ClientData.LoadedSubject != selectedSubject)
                 {
@@ -179,11 +197,13 @@ namespace Source.Networking
                 var queuedChunks = ClientData.Output.QueuedSamplesPerChannel / AudioConstants.SamplesChunkSize;
                 if (queuedChunks < minChunksQueued)
                 {
-                    foreach (var (_, player) in players)
+                    foreach (var player in players.Values)
                     {
                         var isLocal = player == ClientData.LocalPlayer;
                         if (!hearSelfToggle.isOn && isLocal)
                         {
+                            player.Audio.AverageAmplitude = 0;
+
                             continue;
                         }
 
