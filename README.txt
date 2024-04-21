@@ -16,4 +16,4 @@ TO RUN on 1 Computer:
 
 2. Added local volume controls for both the user and their teammates. This allows users to tune their audio to their liking.
 
-3. Set voice attenuation to the size of the table by default. Because users can't adjust their hearing range yet, using the size of the table is a reasonable default and makes our program more intuitive to use.
+3. Set voice attenuation to the size of the table by default. Because users can't adjust their voice broadcast range yet, using the size of the table is a reasonable default and makes our program more intuitive to use.
